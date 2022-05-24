@@ -1,0 +1,11 @@
+package com.sbnz;
+
+import com.sbnz.timemanagementadvisor.model.User;
+
+rule "Classify User"
+    when
+        $u: User()
+    then
+        $u.setNumber($u.getName().length());
+        update($u);
+end

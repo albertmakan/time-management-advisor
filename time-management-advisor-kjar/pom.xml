@@ -6,7 +6,5 @@
 	<artifactId>time-management-advisor-kjar</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>time-management-advisor-kjar</name>
-	<packaging>
-		jar
-	</packaging>
+	<packaging>jar</packaging>
 </project>

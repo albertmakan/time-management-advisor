@@ -3,17 +3,23 @@ package com.sbnz.timemanagementadvisor.model;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityType;
 import lombok.Data;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import javax.persistence.Id;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Document
 public class Activity {
-    private Long id;
+    @Id
+    private ObjectId id;
     private String title, description;
-    private List<String> checklist;
-    private Date beginning, end;
-    private Integer estimatedTimeMin;
+    private List<CheckListItem> checklist;
+    private LocalDateTime beginning, end;
+    private Duration estimatedTime;
     private Integer priority;
     private ActivityContinuityType continuityType;
     private ActivityType activityType;

@@ -1,19 +1,19 @@
 package com.sbnz.timemanagementadvisor.model;
 
+import com.sbnz.timemanagementadvisor.model.enums.PostponementReason;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Document
-public class User {
+public class Postponement {
     @Id
     private ObjectId id;
-    private String name;
-    private Integer number;
-    private LocalDate birthDate;
-    private String email;
+    private LocalDateTime dateTime;
+    private PostponementReason reason;
+    private ObjectId activityId;
 }

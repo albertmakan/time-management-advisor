@@ -1,0 +1,18 @@
+package com.sbnz;
+
+import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
+import com.sbnz.timemanagementadvisor.model.ActivityInstance;
+import com.sbnz.timemanagementadvisor.model.DayTemplate;
+
+import java.time.LocalTime;
+
+
+
+// rule "Add routine"
+//     when
+//         $day: DailyTimeSheet(activities.size()==0)
+//     then
+//         System.out.println("AAAAAAAAAAAAAAAAAAA");
+//         $day.getActivities().add(new ActivityInstance(){{setTitle("ACTIVITY");}});
+//         update($day);
+// end

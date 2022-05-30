@@ -1,0 +1,118 @@
+package com.sbnz;
+
+import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
+import com.sbnz.timemanagementadvisor.model.ActivityInstance;
+import com.sbnz.timemanagementadvisor.model.DayTemplate;
+import com.sbnz.timemanagementadvisor.model.Routine;
+import com.sbnz.timemanagementadvisor.model.Activity;
+import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
+
+import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import org.bson.types.ObjectId;
+
+declare LastActivityEnd
+  time: LocalTime
+  note: java.lang.String
+end
+
+
+rule "find template"
+    when
+        $day: DailyTimeSheet(templateId == null, $date: day)
+        $dt: DayTemplate(forDays contains $date.getDayOfWeek())
+    then
+    System.out.println("find template");
+        modify($day) { setTemplateId($dt.getId()) };
+end
+
+
+rule "add routine"
+    salience 1000
+    when
+        $day: DailyTimeSheet($tid: templateId)
+        $lae: LastActivityEnd($time: time)
+        $dt: DayTemplate(id == $tid, $routines:routines)
+        Routine($rn:name, $rs:start, $re:end, $rs.isBefore($time.plusMinutes(16)), $rs.isAfter($time)) from $routines
+    then
+        System.out.println("add routine");
+        ActivityInstance ai = new ActivityInstance();
+        ai.setTitle($rn);
+        ai.setStart($rs);
+        ai.setEnd($re);
+        modify($day) { getActivities().add(ai) }
+        modify($lae) { setTime($re) }
+end
+
+
+rule "add fix activity"
+    salience 2000
+    when
+        $day: DailyTimeSheet($date:day)
+        $lae: LastActivityEnd($time: time)
+        $act: Activity(continuityType == ActivityContinuityType.ONE_TIME, $start: start,
+                      $start.isBefore(LocalDateTime.of($date, $time).plusMinutes(16)),
+                      $start.isAfter(LocalDateTime.of($date, $time))
+        )
+    then
+        System.out.println("add fix activity");
+        ActivityInstance ai = new ActivityInstance();
+        ai.setTitle($act.getTitle());
+        ai.setStart($act.getStart().toLocalTime());
+        ai.setEnd($act.getEnd().toLocalTime());
+        modify($day) { getActivities().add(ai) }
+        modify($lae) { setTime(ai.getEnd()) }
+end
+
+
+// rule "add periodic activity"
+//     salience 2000
+//     when
+//         $day: DailyTimeSheet($d:day)
+//         $lae: LastActivityEnd($time: time)
+//         $act: Activity(continuityType == ActivityContinuityType.ONE_TIME, $start: start,
+//                       $start.isBefore(LocalDateTime.of($d, $time).plusMinutes(16)),
+//                       $start.isAfter(LocalDateTime.of($d, $time))
+//         )
+//     then
+//         System.out.println("add periodic activity");
+//         ActivityInstance ai = new ActivityInstance();
+//         ai.setTitle($act.getTitle());
+//         ai.setStart($act.getStart().toLocalTime());
+//         ai.setEnd($act.getEnd().toLocalTime());
+//         modify($day) { getActivities().add(ai) }
+//         modify($lae) { setTime(ai.getEnd()) }
+// end
+
+
+rule "add continual activity"
+    salience 500
+    when
+        $day: DailyTimeSheet()
+        $lae: LastActivityEnd($time: time, $time.isBefore(LocalTime.MAX.minusMinutes(15)))
+    then
+        System.out.println("add continual activity");
+        ActivityInstance ai = new ActivityInstance();
+        ai.setActivityId(new ObjectId("6295083c44853355ba2a64ce"));
+        ai.setTitle("SOME ACTIVITY");
+        ai.setStart($time);
+        ai.setEnd($time.plusMinutes(15));
+        int len = $day.getActivities().size();
+        if (len==0 || !ai.getActivityId().equals($day.getActivities().get(len-1).getActivityId()))
+            modify($day) { getActivities().add(ai) }
+        else
+            modify($day) { getActivities().get(len-1).setEnd(ai.getEnd()) }
+        modify($lae) { setTime(ai.getEnd()) }
+end
+
+
+rule "Add LastActivityEnd"
+    when
+        not(LastActivityEnd())
+    then
+        System.out.println("Add LastActivityEnd");
+        LastActivityEnd l = new LastActivityEnd();
+        l.setTime(LocalTime.MIDNIGHT);
+        insert(l);
+end

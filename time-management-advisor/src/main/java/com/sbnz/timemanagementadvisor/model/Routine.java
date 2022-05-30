@@ -10,5 +10,5 @@ public class Routine {
     private Long id;
     private String name;
     private RoutineType type;
-    private LocalTime beginning, end;
+    private LocalTime start, end;
 }

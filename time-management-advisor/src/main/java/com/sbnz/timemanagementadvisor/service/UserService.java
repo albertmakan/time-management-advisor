@@ -13,7 +13,7 @@ public class UserService {
     private final KieContainer kieContainer;
 
     public User classify(User user) {
-        KieSession kieSession = kieContainer.newKieSession();
+        KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
         kieSession.insert(user);
         kieSession.fireAllRules();
         kieSession.dispose();

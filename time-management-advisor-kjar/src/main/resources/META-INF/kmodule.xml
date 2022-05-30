@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kmodule xmlns="http://jboss.org/kie/6.0.0/kmodule" 
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-   
+    <kbase name="plan-day-rules" packages="plan-day">
+        <ksession name="ksession-plan-day"/>
+    </kbase>
+    
+    <kbase name="eval-day-rules" packages="eval-day">
+        <ksession name="ksession-eval-day"/>
+    </kbase>
+    
+    <kbase name="routines-rules" packages="routines">
+        <ksession name="ksession-routines"/>
+    </kbase>
 </kmodule>

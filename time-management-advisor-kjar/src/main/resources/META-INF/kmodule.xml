@@ -12,4 +12,12 @@
     <kbase name="routines-rules" packages="routines">
         <ksession name="ksession-routines"/>
     </kbase>
+    
+    <kbase name="new-activity-rules" packages="new-activity">
+        <ksession name="ksession-new-activity"/>
+    </kbase>
+    
+    <kbase name="monitoring-rules" packages="monitoring" eventProcessingMode="stream">
+        <ksession name="ksession-monitoring"/>
+    </kbase>
 </kmodule>

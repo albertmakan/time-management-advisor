@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityType;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 
 import java.time.LocalTime;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class ActivityInstance {
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId activityId;
@@ -17,5 +19,5 @@ public class ActivityInstance {
     private List<CheckListItem> checklist;
     private LocalTime start, end;
     private ActivityType activityType;
-    private List<LocalTime> monitoring;
+    private List<StopwatchEvent> monitoring;
 }

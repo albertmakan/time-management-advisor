@@ -7,7 +7,10 @@ import com.sbnz.timemanagementadvisor.model.Routine;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
 
+import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
+
 import java.time.LocalTime;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import org.bson.types.ObjectId;
@@ -17,14 +20,63 @@ declare LastActivityEnd
   note: java.lang.String
 end
 
+declare NextActivityInfo
+  activity: Activity
+  isFound: boolean
+  note: java.lang.String
+end
 
-rule "find template"
+
+rule "Find template"
     when
         $day: DailyTimeSheet(templateId == null, $date: day)
         $dt: DayTemplate(forDays contains $date.getDayOfWeek())
     then
-    System.out.println("find template");
-        modify($day) { setTemplateId($dt.getId()) };
+        System.out.println("find template");
+        modify($day) { setTemplateId($dt.getId()) }
+end
+
+
+rule "Find next one time activity"
+    salience 10
+    when
+        $day: DailyTimeSheet($date: day)
+        $lae: LastActivityEnd($time: time)
+        not(NextActivityInfo())
+        accumulate(
+            Activity(continuityType == ActivityContinuityType.ONE_TIME, $start: start,
+                    !$start.isBefore(LocalDateTime.of($date, $time))),
+            $nearestTime: min($start)
+        )
+        $act: Activity(start.equals($nearestTime), continuityType == ActivityContinuityType.ONE_TIME)
+    then
+        NextActivityInfo info = new NextActivityInfo();
+        info.setActivity($act);
+        insert(info);
+end
+
+
+rule "Find next periodic activity"
+    salience 9
+    when
+        $day: DailyTimeSheet($date: day)
+        $lae: LastActivityEnd($time: time)
+        not(NextActivityInfo())
+        $act: Activity(this != null) from accumulate(
+            Activity($this: this, continuityType == ActivityContinuityType.PERIODIC,
+                    $startTime: start.toLocalTime(), $startDate: start.toLocalDate(),
+                    !$startTime.isBefore($time), !$startDate.isBefore($date),
+                    (periodicInfo.forDays contains $date.getDayOfWeek() || 
+                    (Duration.between($startDate, $date).toDays() % periodicInfo.nDays) == 0)
+            ),
+            init(Activity a = null;)
+            action(if (a == null || $startTime.isBefore(a.getStart().toLocalTime())) a = $this;)
+            result(a)
+        )
+    then
+        NextActivityInfo info = new NextActivityInfo();
+        info.setActivity($act);
+        insert(info);
 end
 
 
@@ -34,56 +86,35 @@ rule "add routine"
         $day: DailyTimeSheet($tid: templateId)
         $lae: LastActivityEnd($time: time)
         $dt: DayTemplate(id == $tid, $routines:routines)
-        Routine($rn:name, $rs:start, $re:end, $rs.isBefore($time.plusMinutes(16)), $rs.isAfter($time)) from $routines
+        $routine: Routine($start: start, DateTimeUtils.isInNMinutes($time, $start, 16)) from $routines
     then
         System.out.println("add routine");
         ActivityInstance ai = new ActivityInstance();
-        ai.setTitle($rn);
-        ai.setStart($rs);
-        ai.setEnd($re);
+        ai.setTitle($routine.getName());
+        ai.setStart($start);
+        ai.setEnd($routine.getEnd());
         modify($day) { getActivities().add(ai) }
-        modify($lae) { setTime($re) }
+        modify($lae) { setTime($routine.getEnd()) }
 end
 
 
-rule "add fix activity"
-    salience 2000
+rule "Add fix activity"
+    salience 1500
     when
-        $day: DailyTimeSheet($date:day)
+        $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
-        $act: Activity(continuityType == ActivityContinuityType.ONE_TIME, $start: start,
-                      $start.isBefore(LocalDateTime.of($date, $time).plusMinutes(16)),
-                      $start.isAfter(LocalDateTime.of($date, $time))
-        )
+        $next: NextActivityInfo($act: activity, $start: activity.start.toLocalTime(), DateTimeUtils.isInNMinutes($time, $start, 20))
     then
         System.out.println("add fix activity");
         ActivityInstance ai = new ActivityInstance();
         ai.setTitle($act.getTitle());
-        ai.setStart($act.getStart().toLocalTime());
+        ai.setDescription($act.getDescription());
+        ai.setStart($start);
         ai.setEnd($act.getEnd().toLocalTime());
         modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
+        delete($next);
 end
-
-
-// rule "add periodic activity"
-//     salience 2000
-//     when
-//         $day: DailyTimeSheet($d:day)
-//         $lae: LastActivityEnd($time: time)
-//         $act: Activity(continuityType == ActivityContinuityType.ONE_TIME, $start: start,
-//                       $start.isBefore(LocalDateTime.of($d, $time).plusMinutes(16)),
-//                       $start.isAfter(LocalDateTime.of($d, $time))
-//         )
-//     then
-//         System.out.println("add periodic activity");
-//         ActivityInstance ai = new ActivityInstance();
-//         ai.setTitle($act.getTitle());
-//         ai.setStart($act.getStart().toLocalTime());
-//         ai.setEnd($act.getEnd().toLocalTime());
-//         modify($day) { getActivities().add(ai) }
-//         modify($lae) { setTime(ai.getEnd()) }
-// end
 
 
 rule "add continual activity"
@@ -92,6 +123,7 @@ rule "add continual activity"
         $day: DailyTimeSheet()
         $lae: LastActivityEnd($time: time, $time.isBefore(LocalTime.MAX.minusMinutes(15)))
     then
+    // TODO refactor!
         System.out.println("add continual activity");
         ActivityInstance ai = new ActivityInstance();
         ai.setActivityId(new ObjectId("6295083c44853355ba2a64ce"));

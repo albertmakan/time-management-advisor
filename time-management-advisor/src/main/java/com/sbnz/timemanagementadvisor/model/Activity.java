@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class Activity {
     private String title, description;
     private List<CheckListItem> checklist;
     private LocalDateTime start, end;
-    private Duration estimatedTime;
+    private Integer estimatedTimeMinutes;
     private Integer priority;
     private ActivityContinuityType continuityType;
     private ActivityType activityType;
@@ -30,7 +29,6 @@ public class Activity {
     private PeriodicInfo periodicInfo;
 
     void a(){
-
     }
 
     @Data

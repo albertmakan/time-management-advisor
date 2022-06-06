@@ -7,7 +7,6 @@ import java.time.LocalTime;
 
 @Data
 public class Routine {
-    private Long id;
     private String name;
     private RoutineType type;
     private LocalTime start, end;

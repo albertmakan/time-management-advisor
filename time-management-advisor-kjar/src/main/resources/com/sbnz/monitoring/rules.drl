@@ -1,0 +1,115 @@
+package com.sbnz;
+
+import com.sbnz.timemanagementadvisor.model.StopwatchEvent;
+
+import java.util.Date;
+import java.lang.Long;
+import java.time.LocalTime;
+
+
+declare WorkEvent
+    @role(event)
+    @timestamp(timestamp)
+    @duration(duration)
+    timestamp: Date
+    duration: Long
+end
+
+declare BreakEvent
+    @role(event)
+    @timestamp(timestamp)
+    @duration(duration)
+    timestamp: Date
+    duration: Long
+end
+
+declare ActivityBlockEvent
+    @role(event)
+    workMinutes: long
+    breakMinutes: long
+end
+
+
+// rule "CEP test"
+//     when
+//         $n: Number() from accumulate(
+//           StopwatchEvent() over window:time(10s), count(1)
+//         )
+//     then
+//         System.out.println($n + "event in last 10s");
+// end
+
+
+rule "Insert first work event"
+    when
+        $e1: StopwatchEvent($t1: timestamp)
+        $e2: StopwatchEvent(this after[1m] $e1, $t2: timestamp)
+        not(WorkEvent())
+    then
+        long dt = $t2.getTime()-$t1.getTime();
+        insert(new WorkEvent($t1, dt));
+        System.out.println("It was a "+ dt/60000 + "min WORK");
+        delete($e1);
+end
+
+
+rule "Insert break event"
+    when
+        $e1: StopwatchEvent($t1: timestamp)
+        $e2: StopwatchEvent(this after[30s] $e1, $t2: timestamp)
+        $we: WorkEvent(this finishedby $e1)
+    then
+        long dt = $t2.getTime()-$t1.getTime();
+        insert(new BreakEvent($t1, dt));
+        System.out.println("It was a "+ dt/60000 + "min BREAK");
+        delete($e1);
+end
+
+
+rule "Insert work event"
+    when
+        $e1: StopwatchEvent($t1: timestamp)
+        $e2: StopwatchEvent(this after[1m] $e1, $t2: timestamp)
+        $be: BreakEvent(this finishedby $e1)
+    then
+        long dt = $t2.getTime()-$t1.getTime();
+        insert(new WorkEvent($t1, dt));
+        System.out.println("It was a "+ dt/60000 + "min WORK");
+        delete($e1);
+end
+
+
+rule "Eval first activity block"
+    when
+        not(ActivityBlockEvent())
+        Number(this == 3) from accumulate(BreakEvent(), count(1))
+        accumulate(
+            WorkEvent($d: duration),
+            $dw: sum($d)
+        )
+        accumulate(
+            BreakEvent($d: duration),
+            $db: sum($d)
+        )
+    then
+        insert(new ActivityBlockEvent($dw/60000, $db/60000));
+        System.out.println("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
+end
+
+
+rule "Eval activity block"
+    when
+        $abe: ActivityBlockEvent()
+        Number(this == 3) from accumulate(BreakEvent(this after $abe), count(1))
+        accumulate(
+            WorkEvent($d: duration) over window:length(3),
+            $dw: sum($d)
+        )
+        accumulate(
+            BreakEvent($d: duration) over window:length(3),
+            $db: sum($d)
+        )
+    then
+        insert(new ActivityBlockEvent($dw/60000, $db/60000));
+        System.out.println("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
+end

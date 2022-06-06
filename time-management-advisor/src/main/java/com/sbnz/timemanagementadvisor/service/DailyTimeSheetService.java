@@ -34,7 +34,6 @@ public class DailyTimeSheetService {
         for (Activity a : activities) kieSession.insert(a);
 
         kieSession.insert(day);
-        activityRepository.save(new Activity());
 
         kieSession.fireAllRules();
         kieSession.dispose();

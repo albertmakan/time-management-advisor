@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Document
@@ -26,14 +27,6 @@ public class Activity {
     private ActivityContinuityType continuityType;
     private ActivityType activityType;
     private Boolean isArchived=false, isDone=false;
-    private PeriodicInfo periodicInfo;
 
-    void a(){
-    }
-
-    @Data
-    public static class PeriodicInfo {
-        private List<DayOfWeek> forDays;
-        private Integer nDays;
-    }
+    private Set<DayOfWeek> forDays; // only if periodic
 }

@@ -9,5 +9,6 @@ import java.time.LocalTime;
 public class Routine {
     private String name;
     private RoutineType type;
-    private LocalTime start, end;
+    private LocalTime earliestStart, latestStart;
+    private Integer durationMinutes;
 }

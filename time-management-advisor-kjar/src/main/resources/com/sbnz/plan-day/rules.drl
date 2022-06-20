@@ -22,7 +22,18 @@ end
 
 declare NextActivityInfo
   activity: Activity
-  isFound: boolean
+  note: java.lang.String
+end
+
+declare NextRoutineInfo
+  routine: Routine
+  note: java.lang.String
+end
+
+declare HighPriorityActivities
+  list: Activity[]
+  durations: int[]
+  n: int
   note: java.lang.String
 end
 
@@ -34,6 +45,23 @@ rule "Find template"
     then
         System.out.println("find template");
         modify($day) { setTemplateId($dt.getId()) }
+end
+
+
+rule "Insert LastActivityEnd and HighPriorityActivities"
+    when
+        not(LastActivityEnd())
+        not(HighPriorityActivities())
+    then
+        System.out.println("Add LastActivityEnd and HighPriorityActivities");
+        LastActivityEnd l = new LastActivityEnd();
+        l.setTime(LocalTime.MIDNIGHT);
+        insert(l);
+        HighPriorityActivities hpa = new HighPriorityActivities();
+        hpa.setList(new Activity[5]);
+        hpa.setDuration(new int[5])
+        hpa.setN(0);
+        insert(hpa);
 end
 
 
@@ -50,6 +78,7 @@ rule "Find next one time activity"
         )
         $act: Activity(start.equals($nearestTime), continuityType == ActivityContinuityType.ONE_TIME)
     then
+        System.out.println("find next one time activity");
         NextActivityInfo info = new NextActivityInfo();
         info.setActivity($act);
         insert(info);
@@ -66,35 +95,97 @@ rule "Find next periodic activity"
             Activity($this: this, continuityType == ActivityContinuityType.PERIODIC,
                     $startTime: start.toLocalTime(), $startDate: start.toLocalDate(),
                     !$startTime.isBefore($time), !$startDate.isBefore($date),
-                    (periodicInfo.forDays contains $date.getDayOfWeek() || 
-                    (Duration.between($startDate, $date).toDays() % periodicInfo.nDays) == 0)
+                    forDays contains $date.getDayOfWeek()
             ),
             init(Activity a = null;)
             action(if (a == null || $startTime.isBefore(a.getStart().toLocalTime())) a = $this;)
             result(a)
         )
     then
+        System.out.println("find next periodic activity");
         NextActivityInfo info = new NextActivityInfo();
         info.setActivity($act);
         insert(info);
 end
 
 
-rule "add routine"
-    salience 1000
+rule "Find next routine"
+    salience 8
     when
         $day: DailyTimeSheet($tid: templateId)
         $lae: LastActivityEnd($time: time)
-        $dt: DayTemplate(id == $tid, $routines:routines)
-        $routine: Routine($start: start, DateTimeUtils.isInNMinutes($time, $start, 16)) from $routines
+        $dt: DayTemplate(id == $tid, $routines: routines)
+        not(NextRoutineInfo())
+        accumulate(
+            Routine($start: earliestStart, !latestStart.isBefore($time)) from $routines,
+            $nearestTime: min($start)
+        )
+        $routine: Routine(earliestStart.equals($nearestTime)) from $routines
+    then
+        System.out.println("find next routine");
+        NextRoutineInfo info = new NextRoutineInfo();
+        info.setRoutine($routine);
+        insert(info);
+end
+
+
+rule "Find activities with highest priority"
+    salience 10000 - ($left/$est)
+    when
+        $day: DailyTimeSheet($date: day)
+        $lae: LastActivityEnd($time: time)
+        $act: Activity(continuityType == ActivityContinuityType.CONTINUAL, !start.toLocalDate().isAfter($date),
+                       $left: Duration.between(LocalDateTime.of($date,$time), end).toMinutes(), $est: estimatedTimeMinutes)
+        $hpa: HighPriorityActivities($al: list, $n: n, $n<5, $dl: durations)
+    then
+        if ($n<5) {
+        System.out.println("find activities with highest priority "+$act.getTitle());
+        $al[$n] = $act;
+        int daysLeft = $left / 1440;
+        $dl[$n] = (daysLeft < 1) ? $est : ($est / daysLeft);
+        $hpa.setN($n+1);
+        }
+end
+
+
+rule "Add routine"
+    salience 1000
+    when
+        $day: DailyTimeSheet($date: day)
+        $lae: LastActivityEnd($time: time)
+        $next: NextRoutineInfo($routine: routine, $es: routine.earliestStart, $ls: routine.latestStart, 
+                                DateTimeUtils.isBetween($time, $es, $ls))
     then
         System.out.println("add routine");
         ActivityInstance ai = new ActivityInstance();
         ai.setTitle($routine.getName());
-        ai.setStart($start);
-        ai.setEnd($routine.getEnd());
+        ai.setStart($time);
+        ai.setEnd($time.plusMinutes($routine.getDurationMinutes()));
         modify($day) { getActivities().add(ai) }
-        modify($lae) { setTime($routine.getEnd()) }
+        modify($lae) { setTime(ai.getEnd()) }
+        delete($next);
+end
+
+
+rule "Add routine - overlaps with fix activity"
+    salience 1001
+    when
+        $day: DailyTimeSheet($date: day)
+        $lae: LastActivityEnd($time: time)
+        $nextr: NextRoutineInfo($routine: routine, $es: routine.earliestStart, $ls: routine.latestStart,
+                                DateTimeUtils.isBetween($time, $es, $ls),
+                                $end: $time.plusMinutes(routine.durationMinutes))
+        $nexta: NextActivityInfo($as: start, DateTimeUtils.isBetween($as, $time, $end), $t: activity.title)
+    then
+        System.out.println("add routine - overlaps with fix activity");
+        ActivityInstance ai = new ActivityInstance();
+        ai.setTitle($routine.getName());
+        ai.setDescription("WARNING: shorter because of: "+$t)
+        ai.setStart($time);
+        ai.setEnd($as.minusMinutes(15));
+        modify($day) { getActivities().add(ai) }
+        modify($lae) { setTime(ai.getEnd()) }
+        delete($nextr);
 end
 
 
@@ -107,6 +198,7 @@ rule "Add fix activity"
     then
         System.out.println("add fix activity");
         ActivityInstance ai = new ActivityInstance();
+        ai.setActivityId($act.getId())
         ai.setTitle($act.getTitle());
         ai.setDescription($act.getDescription());
         ai.setStart($start);
@@ -117,34 +209,34 @@ rule "Add fix activity"
 end
 
 
-rule "add continual activity"
+rule "Add continual activity"
     salience 500
     when
         $day: DailyTimeSheet()
-        $lae: LastActivityEnd($time: time, $time.isBefore(LocalTime.MAX.minusMinutes(15)))
+        $lae: LastActivityEnd($time: time, $time.isBefore(LocalTime.MAX.minusMinutes(1)))
+        NextActivityInfo($act: activity, $astart: activity.start.toLocalTime())
+        NextRoutineInfo($rou: routine, $rstart: routine.earliestStart)
+        $hpa: HighPriorityActivities($al: list, n > 0, $dl: durations)
     then
-    // TODO refactor!
         System.out.println("add continual activity");
+        LocalTime end = $astart.isAfter($rstart) ? $rstart : $astart;
         ActivityInstance ai = new ActivityInstance();
-        ai.setActivityId(new ObjectId("6295083c44853355ba2a64ce"));
-        ai.setTitle("SOME ACTIVITY");
+        Activity a = $al[0];
+        ai.setActivityId(a.getId());
+        ai.setTitle(a.getTitle());
+        ai.setDescription(a.getDescription());
         ai.setStart($time);
-        ai.setEnd($time.plusMinutes(15));
-        int len = $day.getActivities().size();
-        if (len==0 || !ai.getActivityId().equals($day.getActivities().get(len-1).getActivityId()))
-            modify($day) { getActivities().add(ai) }
-        else
-            modify($day) { getActivities().get(len-1).setEnd(ai.getEnd()) }
+        // TODO checklist?
+        if (Duration.between($time, end).toMinutes() > $dl[0]) end = $time.plusMinutes($dl[0]);
+        ai.setEnd(end);
+        $dl[0] -= Duration.between($time, end).toMinutes();
+        if ($dl[0]<=0) {
+            for (int i = 1; i < $al.length; i++) {
+                $al[i-1] = $al[i];
+                $dl[i-1] = $dl[i];
+            }
+            $hpa.setN($hpa.getN()-1);
+        }
+        modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
-end
-
-
-rule "Add LastActivityEnd"
-    when
-        not(LastActivityEnd())
-    then
-        System.out.println("Add LastActivityEnd");
-        LastActivityEnd l = new LastActivityEnd();
-        l.setTime(LocalTime.MIDNIGHT);
-        insert(l);
 end

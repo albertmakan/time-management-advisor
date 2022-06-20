@@ -13,6 +13,6 @@ public class MonitoringService {
 
     public void insertEvent() {
         eventsSession.insert(new StopwatchEvent());
-        eventsSession.fireAllRules();
+        eventsSession.fireUntilHalt();
     }
 }

@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Document
@@ -19,5 +20,5 @@ public class DayTemplate {
     private String name;
     private List<Routine> routines;
     private LocalTime activeStart, activeEnd;
-    private List<DayOfWeek> forDays;
+    private Set<DayOfWeek> forDays;
 }

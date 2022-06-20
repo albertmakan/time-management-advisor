@@ -99,7 +99,7 @@ end
 
 rule "Eval activity block"
     when
-        $abe: ActivityBlockEvent()
+        $abe: ActivityBlockEvent() over window:length(1)
         Number(this == 3) from accumulate(BreakEvent(this after $abe), count(1))
         accumulate(
             WorkEvent($d: duration) over window:length(3),

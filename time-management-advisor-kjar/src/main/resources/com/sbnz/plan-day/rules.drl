@@ -59,7 +59,7 @@ rule "Insert LastActivityEnd and HighPriorityActivities"
         insert(l);
         HighPriorityActivities hpa = new HighPriorityActivities();
         hpa.setList(new Activity[5]);
-        hpa.setDuration(new int[5])
+        hpa.setDurations(new int[5]);
         hpa.setN(0);
         insert(hpa);
 end
@@ -130,19 +130,19 @@ end
 
 
 rule "Find activities with highest priority"
-    salience 10000 - ($left/$est)
+    salience 10000 - (Duration.between(LocalDateTime.of($date,$time), $end).toMinutes()/$est)
     when
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
         $act: Activity(continuityType == ActivityContinuityType.CONTINUAL, !start.toLocalDate().isAfter($date),
-                       $left: Duration.between(LocalDateTime.of($date,$time), end).toMinutes(), $est: estimatedTimeMinutes)
+                       $est: estimatedTimeMinutes, $end: end)
         $hpa: HighPriorityActivities($al: list, $n: n, $n<5, $dl: durations)
     then
         if ($n<5) {
         System.out.println("find activities with highest priority "+$act.getTitle());
         $al[$n] = $act;
-        int daysLeft = $left / 1440;
-        $dl[$n] = (daysLeft < 1) ? $est : ($est / daysLeft);
+        long daysLeft = Duration.between(LocalDateTime.of($date,$time), $end).toDays();
+        $dl[$n] = (daysLeft < 1) ? $est : (int)($est / daysLeft);
         $hpa.setN($n+1);
         }
 end
@@ -173,14 +173,13 @@ rule "Add routine - overlaps with fix activity"
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
         $nextr: NextRoutineInfo($routine: routine, $es: routine.earliestStart, $ls: routine.latestStart,
-                                DateTimeUtils.isBetween($time, $es, $ls),
-                                $end: $time.plusMinutes(routine.durationMinutes))
-        $nexta: NextActivityInfo($as: start, DateTimeUtils.isBetween($as, $time, $end), $t: activity.title)
+                                DateTimeUtils.isBetween($time, $es, $ls), $d: routine.durationMinutes)
+        $nexta: NextActivityInfo($as: activity.start.toLocalTime(), DateTimeUtils.isBetween($as, $time, $time.plusMinutes($d)), $t: activity.title)
     then
         System.out.println("add routine - overlaps with fix activity");
         ActivityInstance ai = new ActivityInstance();
         ai.setTitle($routine.getName());
-        ai.setDescription("WARNING: shorter because of: "+$t)
+        ai.setDescription("WARNING: shorter because of: "+$t);
         ai.setStart($time);
         ai.setEnd($as.minusMinutes(15));
         modify($day) { getActivities().add(ai) }
@@ -198,7 +197,7 @@ rule "Add fix activity"
     then
         System.out.println("add fix activity");
         ActivityInstance ai = new ActivityInstance();
-        ai.setActivityId($act.getId())
+        ai.setActivityId($act.getId());
         ai.setTitle($act.getTitle());
         ai.setDescription($act.getDescription());
         ai.setStart($start);

@@ -1,25 +1,21 @@
 <template>
   <div>
     <h1>Activities</h1>
+    <ActivityCard v-for="a in activities" :activity="a" :key="a.id" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
 import { getAll } from "@/services/activityService";
 import { Activity } from "@/model/Activity";
+import ActivityCard from "@/components/cards/ActivityCard.vue";
+import { onMounted, ref } from "vue";
+export default { name: "ActivitiesView" };
+</script>
 
-export default defineComponent({
-  name: "ActivitiesView",
-  data() {
-    return {
-      activities: [] as Activity[],
-    };
-  },
-  mounted() {
-    alert("AAAAAAAAAAAAAAAAAAAAA");
-    getAll().then((a) => (this.activities = a));
-  },
-  methods: {},
+<script setup lang="ts">
+const activities = ref<Activity[]>([]);
+onMounted(() => {
+  getAll().then((a) => (activities.value = a));
 });
 </script>

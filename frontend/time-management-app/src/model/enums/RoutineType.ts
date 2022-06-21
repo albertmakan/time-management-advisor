@@ -1,7 +1,7 @@
 export enum RoutineType {
-  SLEEP,
-  MORNING,
-  MEAL,
-  EVENING,
-  OTHER,
+  SLEEP = "SLEEP",
+  MORNING = "MORNING",
+  MEAL = "MEAL",
+  EVENING = "EVENING",
+  OTHER = "OTHER",
 }

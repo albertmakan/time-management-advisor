@@ -13,11 +13,6 @@ import NavigationDrawer from "./components/navbar/NavigationDrawer.vue";
 
 export default defineComponent({
   name: "App",
-  data() {
-    return {
-      //
-    };
-  },
   components: { NavigationDrawer },
 });
 </script>

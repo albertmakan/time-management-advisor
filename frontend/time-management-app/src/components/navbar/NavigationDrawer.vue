@@ -21,16 +21,14 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "NavigationDrawer",
-  data() {
-    return {
-      items: [
-        { title: "Activities", icon: "mdi-view-dashboard", to: "/activities" },
-        { title: "Routines", icon: "mdi-forum", to: "/routines" },
-        { title: "Calendar", icon: "mdi-forum", to: "/calendar" },
-        { title: "New activity", icon: "mdi-forum", to: "/new-activity" },
-        { title: "Reports", icon: "mdi-forum", to: "/reports" },
-      ],
-    };
-  },
+  data: () => ({
+    items: [
+      { title: "Activities", icon: "mdi-view-dashboard", to: "/activities" },
+      { title: "Routines", icon: "mdi-clock", to: "/routines" },
+      { title: "Calendar", icon: "mdi-calendar", to: "/calendar" },
+      { title: "New activity", icon: "mdi-calendar-plus", to: "/new-activity" },
+      { title: "Reports", icon: "mdi-chart-bar", to: "/reports" },
+    ],
+  }),
 });
 </script>

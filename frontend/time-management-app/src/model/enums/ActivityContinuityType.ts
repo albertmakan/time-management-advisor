@@ -1,5 +1,5 @@
 export enum ActivityContinuityType {
-  ONE_TIME,
-  CONTINUAL,
-  PERIODIC,
+  ONE_TIME = "ONE_TIME",
+  CONTINUAL = "CONTINUAL",
+  PERIODIC = "PERIODIC",
 }

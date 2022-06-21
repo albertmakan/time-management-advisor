@@ -1,8 +1,8 @@
 export enum ActivityType {
-  PHYSICAL,
-  MENTAL,
-  SPORT,
-  LEISURE,
-  SOCIAL,
-  READING,
+  PHYSICAL = "PHYSICAL",
+  MENTAL = "MENTAL",
+  SPORT = "SPORT",
+  LEISURE = "LEISURE",
+  SOCIAL = "SOCIAL",
+  READING = "READING",
 }

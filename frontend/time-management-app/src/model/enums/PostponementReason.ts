@@ -1,5 +1,5 @@
 export enum PostponementReason {
-  WEATHER,
-  PEOPLE,
-  ME,
+  WEATHER = "WEATHER",
+  PEOPLE = "PEOPLE",
+  ME = "ME",
 }

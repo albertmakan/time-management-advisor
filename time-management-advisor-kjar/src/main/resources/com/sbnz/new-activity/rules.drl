@@ -8,6 +8,7 @@ import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
 
 import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
+import com.sbnz.timemanagementadvisor.utils.SetUtils;
 
 import java.time.LocalTime;
 import java.time.Duration;
@@ -63,7 +64,7 @@ rule "Check overlap (PERIODIC - PERIODIC)"
         $new: Activity(id == null, continuityType == ActivityContinuityType.PERIODIC, $start: start, $end: end, $forDays: forDays)
         $act: Activity(id != null, continuityType == ActivityContinuityType.PERIODIC, 
                       DateTimeUtils.isOverlapping($start, $end, start, end),
-                      $forDays.stream().anyMatch(forDays::contains),
+                      SetUtils.haveCommon($forDays, forDays),
                       DateTimeUtils.isOverlapping($start.toLocalTime(), $end.toLocalTime(), start.toLocalTime(), end.toLocalTime()))
         $msg: AdviceMessage(text == null)
     then

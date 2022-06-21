@@ -4,7 +4,7 @@ import { ActivityType } from "./enums/ActivityType";
 import { DayOfWeek } from "./enums/DayOfWeek";
 
 export interface Activity {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   checklist: CheckListItem[];
@@ -16,5 +16,5 @@ export interface Activity {
   activityType: ActivityType;
   isArchived: boolean;
   isDone: boolean;
-  forDays: DayOfWeek[];
+  forDays?: DayOfWeek[];
 }

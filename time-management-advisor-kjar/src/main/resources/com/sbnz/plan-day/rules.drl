@@ -130,7 +130,7 @@ end
 
 
 rule "Find activities with highest priority"
-    salience 10000 - (Duration.between(LocalDateTime.of($date,$time), $end).toMinutes()/$est)
+    salience 10000 - (Duration.between(LocalDateTime.of($date, $time), $end).toMinutes() / $est)
     when
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)

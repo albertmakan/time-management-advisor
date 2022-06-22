@@ -31,6 +31,10 @@ const errorHandler = (errorResponse: any) => {
       toast.error("Not found - " + message);
       break;
 
+    case 409:
+      toast.error("Conflict - " + message);
+      break;
+
     case 500:
       toast.error("Internal server error.");
       break;

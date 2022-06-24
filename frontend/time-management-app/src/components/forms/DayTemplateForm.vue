@@ -16,16 +16,18 @@
         />
         <v-row>
           <v-col lg="6">
-            <label>Active start</label>
-            <v-date-picker
+            <v-text-field
+              label="Active start"
               v-model="dayTemplate.activeStart"
-              mode="time"
-              is24hr
+              type="time"
             />
           </v-col>
           <v-col lg="6">
-            <label>Active end</label>
-            <v-date-picker v-model="dayTemplate.activeEnd" mode="time" is24hr />
+            <v-text-field
+              label="Active end"
+              v-model="dayTemplate.activeEnd"
+              type="time"
+            />
           </v-col>
         </v-row>
 
@@ -41,16 +43,18 @@
           />
           <v-row>
             <v-col lg="6">
-              <label>Earliest start</label>
-              <v-date-picker
+              <v-text-field
+                label="Earliest start"
                 v-model="routine.earliestStart"
-                mode="time"
-                is24hr
+                type="time"
               />
             </v-col>
             <v-col lg="6">
-              <label>Latest start</label>
-              <v-date-picker v-model="routine.latestStart" mode="time" is24hr />
+              <v-text-field
+                label="Latest start"
+                v-model="routine.latestStart"
+                type="time"
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -96,6 +100,7 @@ import { RoutineType } from "@/model/enums/RoutineType";
 import { DayOfWeek } from "@/model/enums/DayOfWeek";
 import { useToast } from "vue-toastification";
 import { DayTemplate } from "@/model/DayTemplate";
+import { createDayTemplate } from "@/services/dayTemplateService";
 export default { name: "ActivityForm" };
 </script>
 
@@ -105,19 +110,19 @@ const dayTemplate = ref<DayTemplate>({
   routines: [],
   name: "",
   forDays: [],
-  activeEnd: new Date(),
-  activeStart: new Date(),
+  activeEnd: "00:00",
+  activeStart: "00:00",
 });
 const valid = ref(true);
 const submit = () => {
   toast(JSON.stringify(dayTemplate.value));
-  // createActivity(dayTemplate.value).then(() => toast.success("Added"));
+  createDayTemplate(dayTemplate.value).then(() => toast.success("Added"));
 };
 
 const addRoutine = () => {
   dayTemplate.value.routines.push({
-    earliestStart: new Date(),
-    latestStart: new Date(),
+    earliestStart: "00:00",
+    latestStart: "00:00",
     name: "",
     type: RoutineType.OTHER,
     durationMinutes: 20,

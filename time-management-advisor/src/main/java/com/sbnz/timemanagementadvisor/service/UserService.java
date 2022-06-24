@@ -14,12 +14,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final KieContainer kieContainer;
 
-    public User classify(User user) {
-        KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
-        kieSession.insert(user);
-        kieSession.fireAllRules();
-        kieSession.dispose();
-        return user;
+    public User create(User user) {
+//        KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
+//        kieSession.insert(user);
+//        kieSession.fireAllRules();
+//        kieSession.dispose();
+        return userRepository.save(user);
     }
 
 }

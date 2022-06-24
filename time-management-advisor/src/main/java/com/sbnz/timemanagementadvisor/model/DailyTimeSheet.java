@@ -28,7 +28,4 @@ public class DailyTimeSheet {
         this.day = day;
         activities = new ArrayList<>();
     }
-
-    void a(){
-    }
 }

@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <h1>Routines</h1>
+  <h1>Routines</h1>
+  <v-row>
     <DayTemplateCard
       v-for="dt in dayTemplates"
       :day-template="dt"
       :key="dt.id"
     />
-  </div>
+  </v-row>
   <DayTemplateForm />
 </template>
 

@@ -4,6 +4,7 @@ import com.sbnz.timemanagementadvisor.exceptions.ActivityConflictException;
 import com.sbnz.timemanagementadvisor.exceptions.BadRequestException;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.AdviceMessage;
+import com.sbnz.timemanagementadvisor.model.enums.MessageLevel;
 import com.sbnz.timemanagementadvisor.repository.ActivityRepository;
 import lombok.AllArgsConstructor;
 import org.kie.api.runtime.KieContainer;
@@ -33,9 +34,8 @@ public class ActivityService {
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        if (message.getText() != null)
-            throw (message.isBadRequest()) ? new BadRequestException(message.getText()) :
-                    new ActivityConflictException(message.getText());
+        if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
+        if (message.getLevel() == MessageLevel.WARN) throw new ActivityConflictException(message.getText());
 
         return activityRepository.save(activity);
     }

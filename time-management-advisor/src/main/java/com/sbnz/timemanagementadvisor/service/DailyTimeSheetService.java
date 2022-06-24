@@ -10,6 +10,7 @@ import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -19,10 +20,15 @@ public class DailyTimeSheetService {
     private ActivityRepository activityRepository;
     private final KieContainer kieContainer;
 
+    public Optional<DailyTimeSheet> findByDay(LocalDate day) {
+        return dailyTimeSheetRepository.findByDay(day);
+    }
+
     public DailyTimeSheet planNextDay() {
         KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
+
         LocalDate nd = LocalDate.now().plusDays(1);
-        DailyTimeSheet day = dailyTimeSheetRepository.findByDay(nd).orElse(new DailyTimeSheet(nd));
+        DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
         day.getActivities().clear();
 
         dayTemplateRepository.findAll().forEach(kieSession::insert);

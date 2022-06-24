@@ -4,6 +4,7 @@ import RoutinesView from "../views/RoutinesView.vue";
 import NewActivityView from "../views/NewActivityView.vue";
 import CalendarView from "../views/CalendarView.vue";
 import ReportsView from "../views/ReportsView.vue";
+import ProfileView from "../views/ProfileView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -30,6 +31,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/reports",
     name: "reports",
     component: ReportsView,
+  },
+  {
+    path: "/profile",
+    name: "profile",
+    component: ProfileView,
   },
 ];
 

@@ -6,7 +6,7 @@ export interface ActivityInstance {
   title: string;
   description: string;
   checklist: CheckListItem[];
-  start: Date;
-  end: Date;
+  start: string; //Date;
+  end: string; //Date;
   activityType: ActivityType;
 }

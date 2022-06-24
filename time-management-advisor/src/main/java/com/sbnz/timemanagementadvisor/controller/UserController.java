@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<User> test(@RequestBody User user) {
-        return new ResponseEntity<>(userService.classify(user), HttpStatus.OK);
+    @PostMapping(value = "/new", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<User> create(@RequestBody User user) {
+        return new ResponseEntity<>(userService.create(user), HttpStatus.OK);
     }
 }

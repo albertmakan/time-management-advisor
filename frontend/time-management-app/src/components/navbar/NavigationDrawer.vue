@@ -28,7 +28,7 @@ export default defineComponent({
       { title: "Calendar", icon: "mdi-calendar", to: "/calendar" },
       { title: "New activity", icon: "mdi-calendar-plus", to: "/new-activity" },
       { title: "Reports", icon: "mdi-chart-bar", to: "/reports" },
-      { title: "My profile", icon: "mdi-account" },
+      { title: "My profile", icon: "mdi-account", to: "/profile" },
     ],
   }),
 });

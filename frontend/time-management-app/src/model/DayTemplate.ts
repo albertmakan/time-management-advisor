@@ -5,7 +5,7 @@ export interface DayTemplate {
   id?: string;
   name: string;
   routines: Routine[];
-  activeStart: Date;
-  activeEnd: Date;
+  activeStart: string; //Date;
+  activeEnd: string; //Date;
   forDays: DayOfWeek[];
 }

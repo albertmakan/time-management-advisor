@@ -5,4 +5,5 @@ export enum ActivityType {
   LEISURE = "LEISURE",
   SOCIAL = "SOCIAL",
   READING = "READING",
+  OTHER = "OTHER",
 }

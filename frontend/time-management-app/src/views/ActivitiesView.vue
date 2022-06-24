@@ -1,7 +1,9 @@
 <template>
   <div>
     <h1>Activities</h1>
-    <ActivityCard v-for="a in activities" :activity="a" :key="a.id" />
+    <v-row>
+      <ActivityCard v-for="a in activities" :activity="a" :key="a.id" />
+    </v-row>
   </div>
 </template>
 

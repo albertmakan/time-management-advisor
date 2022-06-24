@@ -1,11 +1,10 @@
 package com.sbnz;
 
 import com.sbnz.timemanagementadvisor.model.AdviceMessage;
-import com.sbnz.timemanagementadvisor.model.ActivityInstance;
 import com.sbnz.timemanagementadvisor.model.DayTemplate;
-import com.sbnz.timemanagementadvisor.model.Routine;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
+import com.sbnz.timemanagementadvisor.model.enums.MessageLevel;
 
 import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
 import com.sbnz.timemanagementadvisor.utils.SetUtils;
@@ -14,38 +13,6 @@ import java.time.LocalTime;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-
-// declare HPA
-//   list: Activity[]
-//   n:int
-// end
-
-
-// rule "Insert HighPriorityActivities"
-//     salience 0.1
-//     when
-//         not(HPA())
-//     then
-//         System.out.println("Add hpa");
-//         HPA hpa = new HPA();
-//         hpa.setList(new Activity[3]);
-//         hpa.setN(0);
-//         insert(hpa);
-// end
-
-// rule "Find activities with highest priority a"
-//     salience 10000 - ($left/$est)
-//     when
-//         $act: Activity(!start.toLocalDate().isAfter(LocalDate.now()),
-//                        $left: Duration.between(LocalDateTime.now(), end).toMinutes(), $est: estimatedTimeMinutes)
-//         $hpa: HPA($al: list, $n: n)
-//     then
-//         if ($n<3) {
-//         System.out.println("find activities with highest priority "+$act.getTitle());
-//         $al[$n] = $act;
-//         $hpa.setN($n+1);
-//         }
-// end
 
 
 rule "Check overlap (ONE_TIME - ONE_TIME)"
@@ -56,6 +23,7 @@ rule "Check overlap (ONE_TIME - ONE_TIME)"
         $msg: AdviceMessage(text == null)
     then
         $msg.setText("Overlaps with activity '"+$act.getTitle()+"'");
+        $msg.setLevel(MessageLevel.WARN);
 end
 
 
@@ -69,6 +37,7 @@ rule "Check overlap (PERIODIC - PERIODIC)"
         $msg: AdviceMessage(text == null)
     then
         $msg.setText("Overlaps with activity '"+$act.getTitle()+"'");
+        $msg.setLevel(MessageLevel.WARN);
 end
 
 
@@ -77,10 +46,13 @@ rule "Check enough time"
         $new: Activity(id == null, continuityType == ActivityContinuityType.CONTINUAL, $start: start, end!=null, $end: end)
 
     then
+        //$msg.setLevel(MessageLevel.WARN);
 end
 
 
 rule "Check contraints"
     when
+        $new: Activity(id == null)
     then
+        //$msg.setLevel(MessageLevel.ERROR);
 end

@@ -19,6 +19,7 @@
               v-model="activity.start"
               :update-on-input="false"
               mode="datetime"
+              is24hr
             >
               <template v-slot="{ inputValue, inputEvents }">
                 <v-text-field :value="inputValue" v-on="inputEvents" />
@@ -31,6 +32,7 @@
               v-model="activity.end"
               :update-on-input="false"
               mode="datetime"
+              is24hr
             >
               <template v-slot="{ inputValue, inputEvents }">
                 <v-text-field :value="inputValue" v-on="inputEvents" />
@@ -82,8 +84,8 @@
             </template>
           </v-list-item>
           <v-list-item
-            v-for="li in activity.checklist"
-            :key="li.name"
+            v-for="(li, i) in activity.checklist"
+            :key="i"
             prepend-icon="mdi-checkbox-blank"
             :title="li.name"
             :subtitle="li.duration + 'min'"
@@ -92,7 +94,7 @@
               <v-btn
                 variant="text"
                 icon="mdi-close"
-                @click="() => removeItem(li.name)"
+                @click="() => removeItem(i)"
               />
             </template>
           </v-list-item>
@@ -102,7 +104,7 @@
                 <v-col lg="8">
                   <v-text-field label="name" v-model="newitem.name" />
                 </v-col>
-                <v-col lg="4">
+                <v-col lg="3">
                   <v-text-field
                     label="duration"
                     suffix="min"
@@ -110,15 +112,28 @@
                     v-model="newitem.duration"
                   />
                 </v-col>
+                <v-col lg="1">
+                  <v-btn
+                    variant="text"
+                    icon="mdi-check"
+                    @click="addItem"
+                    :disabled="!newitem.name || !newitem.duration"
+                  />
+                </v-col>
               </v-row>
-              <v-btn variant="text" icon="mdi-check" @click="addItem" />
             </template>
           </v-list-item>
         </v-list>
       </v-form>
     </v-card-content>
     <v-card-actions>
-      <v-btn :disabled="!valid" color="secondary" size="large" @click="submit">
+      <v-btn
+        :disabled="!valid"
+        color="secondary"
+        variant="flat"
+        size="large"
+        @click="submit"
+      >
         Save
       </v-btn>
     </v-card-actions>
@@ -139,7 +154,7 @@ export default { name: "ActivityForm" };
 
 <script setup lang="ts">
 const toast = useToast();
-const activity = ref<Activity>({} as Activity);
+const activity = ref<Activity>({ start: new Date() } as Activity);
 const valid = ref(true);
 const submit = () => {
   console.log(JSON.stringify(activity.value));
@@ -154,10 +169,8 @@ const addItem = () => {
   newitem.value = {} as CheckListItem;
   showinput.value = false;
 };
-const removeItem = (name: string) => {
-  activity.value.checklist = activity.value.checklist?.filter(
-    (li) => li.name !== name
-  );
+const removeItem = (i: number) => {
+  activity.value.checklist.splice(i, 1);
 };
 
 const rules = {

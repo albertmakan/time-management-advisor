@@ -25,12 +25,17 @@ public class ActivityService {
 
     public Activity createNew(Activity activity) {
         KieSession kieSession = kieContainer.newKieSession("ksession-new-activity");
-
-        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+        kieSession.getAgenda().getAgendaGroup("constraints").setFocus();
         kieSession.insert(activity);
         AdviceMessage message = new AdviceMessage();
         kieSession.insert(message);
+        kieSession.fireAllRules();
+        if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
 
+        kieSession.getAgenda().getAgendaGroup("conflict").setFocus();
+        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+        message = new AdviceMessage();
+        kieSession.insert(message);
         kieSession.fireAllRules();
         kieSession.dispose();
 

@@ -1,7 +1,9 @@
 package com.sbnz.timemanagementadvisor.service;
 
+import com.sbnz.timemanagementadvisor.exceptions.BadRequestException;
 import com.sbnz.timemanagementadvisor.model.AdviceMessage;
 import com.sbnz.timemanagementadvisor.model.DayTemplate;
+import com.sbnz.timemanagementadvisor.model.enums.MessageLevel;
 import com.sbnz.timemanagementadvisor.repository.DayTemplateRepository;
 import lombok.AllArgsConstructor;
 import org.kie.api.runtime.KieContainer;
@@ -30,6 +32,8 @@ public class DayTemplateService {
 
         kieSession.fireAllRules();
         kieSession.dispose();
+
+        if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
 
         return dayTemplateRepository.save(dayTemplate);
     }

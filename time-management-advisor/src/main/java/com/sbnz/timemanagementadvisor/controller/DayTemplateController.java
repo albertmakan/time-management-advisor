@@ -1,6 +1,5 @@
 package com.sbnz.timemanagementadvisor.controller;
 
-import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.DayTemplate;
 import com.sbnz.timemanagementadvisor.service.DayTemplateService;
 import lombok.AllArgsConstructor;
@@ -8,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class DayTemplateController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<DayTemplate> create(@RequestBody DayTemplate dayTemplate) {
+    public ResponseEntity<DayTemplate> create(@RequestBody @Valid DayTemplate dayTemplate) {
         return new ResponseEntity<>(dayTemplateService.create(dayTemplate), HttpStatus.OK);
     }
 }

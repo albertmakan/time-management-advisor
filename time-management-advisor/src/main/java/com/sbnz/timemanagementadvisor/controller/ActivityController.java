@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @AllArgsConstructor
@@ -17,7 +18,7 @@ public class ActivityController {
     private final ActivityService activityService;
 
     @PostMapping("/new")
-    public ResponseEntity<Activity> create(@RequestBody Activity activity) {
+    public ResponseEntity<Activity> create(@RequestBody @Valid Activity activity) {
         return new ResponseEntity<>(activityService.createNew(activity), HttpStatus.OK);
     }
 

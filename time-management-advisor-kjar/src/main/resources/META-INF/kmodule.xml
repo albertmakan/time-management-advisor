@@ -16,6 +16,10 @@
     <kbase name="new-activity-rules" packages="new-activity">
         <ksession name="ksession-new-activity"/>
     </kbase>
+
+    <kbase name="reports-rules" packages="reports">
+        <ksession name="ksession-reports"/>
+    </kbase>
     
     <kbase name="monitoring-rules" packages="monitoring" eventProcessingMode="stream">
         <ksession name="ksession-monitoring"/>

@@ -1,5 +1,6 @@
 package com.sbnz.timemanagementadvisor.service;
 
+import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
 import com.sbnz.timemanagementadvisor.repository.ActivityRepository;
 import com.sbnz.timemanagementadvisor.repository.DailyTimeSheetRepository;
@@ -10,7 +11,9 @@ import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -39,5 +42,27 @@ public class DailyTimeSheetService {
         kieSession.fireAllRules();
         kieSession.dispose();
         return dailyTimeSheetRepository.save(day);
+    }
+
+    public DailyTimeSheet evalThisDay() {
+        LocalDate nd = LocalDate.now();
+        DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
+        if (day.getEvaluation() != null) return day;
+
+        KieSession kieSession = kieContainer.newKieSession("ksession-eval-day");
+
+        Set<Activity> activitiesToUpdate = new HashSet<>();
+        kieSession.setGlobal("activitiesToUpdate", activitiesToUpdate);
+
+        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+
+        kieSession.insert(day);
+
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        activitiesToUpdate.forEach(a->System.out.println("UPDATE"+a.getTitle()));
+
+        return day;//dailyTimeSheetRepository.save(day);
     }
 }

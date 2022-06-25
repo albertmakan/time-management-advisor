@@ -6,6 +6,7 @@ import com.sbnz.timemanagementadvisor.model.DayTemplate;
 import com.sbnz.timemanagementadvisor.model.Routine;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
+import com.sbnz.timemanagementadvisor.model.enums.RoutineType;
 
 import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
 
@@ -39,6 +40,9 @@ declare HighPriorityActivities
   note: java.lang.String
 end
 
+declare CheckSleep
+end
+
 
 rule "Find template"
     when
@@ -50,16 +54,12 @@ rule "Find template"
 end
 
 
-rule "Insert LastActivityEnd and HighPriorityActivities"
+rule "Insert HighPriorityActivities and NextRoutineInfo"
     when
-        not(LastActivityEnd())
         not(HighPriorityActivities())
         not(NextRoutineInfo())
     then
-        System.out.println("Add LastActivityEnd and HighPriorityActivities");
-        LastActivityEnd l = new LastActivityEnd();
-        l.setTime(LocalTime.MIDNIGHT);
-        insert(l);
+        System.out.println("Insert HighPriorityActivities and NextRoutineInfo");
         HighPriorityActivities hpa = new HighPriorityActivities();
         hpa.setList(new Activity[5]);
         hpa.setDurations(new int[5]);
@@ -72,8 +72,40 @@ rule "Insert LastActivityEnd and HighPriorityActivities"
 end
 
 
+rule "Insert LastActivityEnd when multiday activity"
+    salience 10
+    when
+        $day: DailyTimeSheet($date: day)
+        not(LastActivityEnd())
+        $act: Activity(continuityType == ActivityContinuityType.ONE_TIME, $end:end, DateTimeUtils.isBetween($date.atStartOfDay(), start, end))
+    then
+        System.out.println("Add LastActivityEnd when multiday activity");
+        LastActivityEnd l = new LastActivityEnd();
+        ActivityInstance ai = new ActivityInstance();
+        ai.setTitle($act.getTitle());
+        ai.setStart(LocalTime.MIDNIGHT);
+        ai.setEnd($end.toLocalDate().equals($date) ? $end.toLocalTime() : LocalTime.MAX);
+        l.setTime(ai.getEnd());
+        modify($day) { getActivities().add(ai) }
+        insert(l);
+        insert(new CheckSleep());
+end
+
+
+rule "Insert LastActivityEnd"
+    salience 9
+    when
+        not(LastActivityEnd())
+    then
+        System.out.println("Add LastActivityEnd");
+        LastActivityEnd l = new LastActivityEnd();
+        l.setTime(LocalTime.MIDNIGHT);
+        insert(l);
+end
+
+
 rule "Find next one time activity"
-    salience 10002
+    salience 10003
     when
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
@@ -93,7 +125,7 @@ end
 
 
 rule "Find next periodic activity"
-    salience 10001
+    salience 10002
     when
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
@@ -140,7 +172,7 @@ rule "Find activities with highest priority"
         $day: DailyTimeSheet($date: day)
         $lae: LastActivityEnd($time: time)
         $act: Activity(continuityType == ActivityContinuityType.CONTINUAL, !start.toLocalDate().isAfter($date),
-                       $est: estimatedTimeMinutes, $end: end)
+                       $est: estimatedTimeMinutes, $end: end, $est!=null, $end!=null)
         $hpa: HighPriorityActivities($al: list, $n: n, $dl: durations, find)
         eval($n < 5)
     then
@@ -210,11 +242,12 @@ rule "Add fix activity"
         ai.setTitle($act.getTitle());
         ai.setDescription($act.getDescription());
         ai.setStart($start);
-        ai.setEnd($act.getEnd().toLocalTime());
+        ai.setEnd($act.getEnd().toLocalDate().equals($date) ? $act.getEnd().toLocalTime() : LocalTime.MAX);
         modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
         delete($next);
         modify($hpa) { setFind(false) }
+        insert(new CheckSleep());
 end
 
 
@@ -261,7 +294,7 @@ rule "Add continual activity - no fix"
         $hpa: HighPriorityActivities($al: list, $n:n, $dl: durations)
         eval($n > 0)
     then
-        System.out.println("add continual activity");
+        System.out.println("add continual activity - no fix");
         LocalTime end = $rstart;
         ActivityInstance ai = new ActivityInstance();
         Activity a = $al[0];
@@ -299,10 +332,27 @@ rule "Add dummy activity"
         LocalTime end = $rstart;
         ActivityInstance ai = new ActivityInstance();
         ai.setTitle("SOME ACTIVITY");
-        ai.setDescription("AAAAAAAAAAAAAAAAA");
+        ai.setDescription("Free time");
         ai.setStart($time);
         ai.setEnd(end);
         modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
         modify($hpa) { setFind(false) }
+end
+
+
+rule "check sleep"
+salience 10001
+    when
+        $day: DailyTimeSheet($tid: templateId)
+        $lae: LastActivityEnd($time: time)
+        $dt: DayTemplate(id == $tid, $routines: routines)
+        $cs: CheckSleep()
+        $sl: Routine(type == RoutineType.SLEEP, DateTimeUtils.isBetween($time, latestStart, latestStart.plusMinutes(durationMinutes))) from $routines
+        $nri: NextRoutineInfo(added)
+    then
+        System.out.println("Have to sleep");
+        $sl.setLatestStart($time);
+        modify($nri){setRoutine($sl), setAdded(false)}
+        delete($cs);
 end

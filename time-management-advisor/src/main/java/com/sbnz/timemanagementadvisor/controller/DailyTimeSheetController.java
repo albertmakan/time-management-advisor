@@ -25,6 +25,11 @@ public class DailyTimeSheetController {
         return new ResponseEntity<>(dailyTimeSheetService.planNextDay(), HttpStatus.OK);
     }
 
+    @GetMapping(value = "/eval", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DailyTimeSheet> eval() {
+        return new ResponseEntity<>(dailyTimeSheetService.evalThisDay(), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/{date}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DailyTimeSheet> getByDate(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         return new ResponseEntity<>(dailyTimeSheetService.findByDay(date)

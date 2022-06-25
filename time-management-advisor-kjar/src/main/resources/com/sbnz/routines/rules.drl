@@ -1,18 +1,118 @@
 package com.sbnz;
 
+import com.sbnz.timemanagementadvisor.model.AdviceMessage;
 import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
 import com.sbnz.timemanagementadvisor.model.ActivityInstance;
 import com.sbnz.timemanagementadvisor.model.DayTemplate;
+import com.sbnz.timemanagementadvisor.model.Routine;
+import com.sbnz.timemanagementadvisor.model.enums.MessageLevel;
+import com.sbnz.timemanagementadvisor.model.enums.RoutineType;
+
+import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
+import com.sbnz.timemanagementadvisor.utils.SetUtils;
 
 import java.time.LocalTime;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 
+rule "Routine rule - 1 day 1 template"
+    when
+        DayTemplate(id == null, $forDays:forDays)
+        DayTemplate(id != null, SetUtils.haveCommon($forDays, forDays))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("There are conflicting templates");
+        $msg.setLevel(MessageLevel.ERROR);
+end
 
-// rule "Add routine"
-//     when
-//         $day: DailyTimeSheet(activities.size()==0)
-//     then
-//         System.out.println("AAAAAAAAAAAAAAAAAAA");
-//         $day.getActivities().add(new ActivityInstance(){{setTitle("ACTIVITY");}});
-//         update($day);
-// end
+
+rule "Routine rule - overlapping"
+    when
+        DayTemplate(id == null, $routines:routines)
+        $r1: Routine($s1: earliestStart, $e1: latestStart.plusMinutes(durationMinutes), $n1:name) from $routines
+        Routine(this!=$r1, DateTimeUtils.isOverlapping($s1, $e1, earliestStart, latestStart.plusMinutes(durationMinutes)), $n2:name) from $routines
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText($n1+" and "+$n2+" are overlapping.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
+rule "Routine rule - sleep time"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Number(this<6 || this>10) from accumulate(Routine(type == RoutineType.SLEEP, $d:durationMinutes) from $routines, sum($d))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("Sleep duration should be between 6 and 10 hours.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - sleep parts"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Number(this<1 || this>4) from accumulate(Routine(type == RoutineType.SLEEP) from $routines, count(1))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("Sleep should consist of 1 - 4 parts.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - meals"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Number(this<2 || this>5) from accumulate(Routine(type == RoutineType.MEAL) from $routines, count(1))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("There should be 2 - 5 meals a day.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - meals late"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Routine(type == RoutineType.MEAL, latestStart.isAfter(LocalTime.of(22,0))) from $routines
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("There should not be a meal after 22:00.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - evening"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Number(this>1) from accumulate(Routine(type == RoutineType.EVENING) from $routines, count(1))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("There should be max 1 evening routine.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - morning"
+    when
+        DayTemplate(id == null, $routines:routines)
+        Number(this>1) from accumulate(Routine(type == RoutineType.MORNING) from $routines, count(1))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("There should be max 1 morning routine.");
+        $msg.setLevel(MessageLevel.WARN);
+end
+
+
+rule "Routine rule - percent of day"
+    when
+        DayTemplate(id == null, $routines:routines)
+        accumulate(Routine($d: durationMinutes) from $routines, $duration: sum($d))
+        eval($duration > 1000)
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("Routines should be max 70% of a day.");
+        $msg.setLevel(MessageLevel.WARN);
+end

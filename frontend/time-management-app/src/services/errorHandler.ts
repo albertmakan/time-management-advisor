@@ -12,6 +12,7 @@ const errorHandler = (errorResponse: any) => {
   if (errorResponse.data?.message) {
     message = errorResponse.data?.message;
   }
+  message = JSON.stringify(message);
   switch (errorResponse.status) {
     case 400:
       toast.error("Bad request - " + message);

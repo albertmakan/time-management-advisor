@@ -16,6 +16,7 @@ import java.time.LocalDate;
 
 
 rule "Check overlap (ONE_TIME - ONE_TIME)"
+    agenda-group "conflict"
     when
         $new: Activity(id == null, continuityType == ActivityContinuityType.ONE_TIME, $start: start, $end: end)
         $act: Activity(id != null, continuityType == ActivityContinuityType.ONE_TIME, 
@@ -28,6 +29,7 @@ end
 
 
 rule "Check overlap (PERIODIC - PERIODIC)"
+    agenda-group "conflict"
     when
         $new: Activity(id == null, continuityType == ActivityContinuityType.PERIODIC, $start: start, $end: end, $forDays: forDays)
         $act: Activity(id != null, continuityType == ActivityContinuityType.PERIODIC, 
@@ -42,17 +44,77 @@ end
 
 
 rule "Check enough time"
+    agenda-group "conflict"
     when
         $new: Activity(id == null, continuityType == ActivityContinuityType.CONTINUAL, $start: start, end!=null, $end: end)
+        $msg: AdviceMessage(text == null)
 
     then
+
+
         //$msg.setLevel(MessageLevel.WARN);
 end
 
 
-rule "Check contraints"
+rule "Check contraints - duration"
+    agenda-group "constraints"
     when
-        $new: Activity(id == null)
+        Activity(end != null, Duration.between(start, end).toMinutes() < 10)
+        $msg: AdviceMessage(text == null)
     then
-        //$msg.setLevel(MessageLevel.ERROR);
+        $msg.setText("Activity should be at least 10 min long.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
+rule "Check contraints - end in past"
+    agenda-group "constraints"
+    when
+        Activity(end != null, end.isBefore(LocalDateTime.now()))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("Activity cannot end in past.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
+rule "Check contraints - one-time end or est"
+    agenda-group "constraints"
+    when
+        Activity(continuityType == ActivityContinuityType.ONE_TIME, end == null, estimatedTimeMinutes == null)
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("For one-time activity either end or estimated time should be given.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
+rule "Check contraints - periodic end or est"
+    agenda-group "constraints"
+    when
+        Activity(continuityType == ActivityContinuityType.PERIODIC, end == null, estimatedTimeMinutes == null)
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("For periodic activity either end or estimated time should be given.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
+rule "Set end instead of estimated time"
+    agenda-group "constraints"
+    when
+        $act: Activity(continuityType != ActivityContinuityType.CONTINUAL, end == null, $est: estimatedTimeMinutes, $est != null, $start:start)
+    then
+        modify($act) { setEnd($start.plusMinutes($est)) }
+end
+
+
+rule "Check contraints - periodic forDays"
+    agenda-group "constraints"
+    when
+        Activity(continuityType == ActivityContinuityType.PERIODIC, (forDays == null || forDays.size() == 0))
+        $msg: AdviceMessage(text == null)
+    then
+        $msg.setText("For periodic activity days should be given.");
+        $msg.setLevel(MessageLevel.ERROR);
 end

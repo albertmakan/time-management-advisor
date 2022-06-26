@@ -16,21 +16,21 @@ import java.time.LocalDate;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/day")
+@RequestMapping(value = "/api/day", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DailyTimeSheetController {
     private final DailyTimeSheetService dailyTimeSheetService;
 
-    @GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/plan")
     public ResponseEntity<DailyTimeSheet> plan() {
         return new ResponseEntity<>(dailyTimeSheetService.planNextDay(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/eval", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/eval")
     public ResponseEntity<DailyTimeSheet> eval() {
         return new ResponseEntity<>(dailyTimeSheetService.evalThisDay(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{date}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/{date}")
     public ResponseEntity<DailyTimeSheet> getByDate(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         return new ResponseEntity<>(dailyTimeSheetService.findByDay(date)
                 .orElse(new DailyTimeSheet(date)), HttpStatus.OK);

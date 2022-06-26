@@ -1,10 +1,7 @@
 package com.sbnz;
 
-import com.sbnz.timemanagementadvisor.model.AdviceMessage;
-import com.sbnz.timemanagementadvisor.model.DayTemplate;
-import com.sbnz.timemanagementadvisor.model.Activity;
-import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
-import com.sbnz.timemanagementadvisor.model.enums.MessageLevel;
+import com.sbnz.timemanagementadvisor.model.*
+import com.sbnz.timemanagementadvisor.model.enums.*
 
 import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
 import com.sbnz.timemanagementadvisor.utils.SetUtils;

@@ -1,6 +1,6 @@
 package com.sbnz.timemanagementadvisor.service;
 
-import com.sbnz.timemanagementadvisor.exceptions.ActivityConflictException;
+import com.sbnz.timemanagementadvisor.exceptions.ConflictException;
 import com.sbnz.timemanagementadvisor.exceptions.BadRequestException;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.AdviceMessage;
@@ -23,6 +23,14 @@ public class ActivityService {
         return activityRepository.findAll();
     }
 
+    public List<Activity> getAllActive() {
+        return activityRepository.findAllByIsArchivedFalseAndIsDoneFalse();
+    }
+
+    public Activity save(Activity activity) {
+        return activityRepository.save(activity);
+    }
+
     public Activity createNew(Activity activity) {
         KieSession kieSession = kieContainer.newKieSession("ksession-new-activity");
         kieSession.getAgenda().getAgendaGroup("constraints").setFocus();
@@ -33,15 +41,15 @@ public class ActivityService {
         if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
 
         kieSession.getAgenda().getAgendaGroup("conflict").setFocus();
-        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+        getAllActive().forEach(kieSession::insert);
         message = new AdviceMessage();
         kieSession.insert(message);
         kieSession.fireAllRules();
         kieSession.dispose();
 
         if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
-        if (message.getLevel() == MessageLevel.WARN) throw new ActivityConflictException(message.getText());
+        if (message.getLevel() == MessageLevel.WARN) throw new ConflictException(message.getText());
 
-        return activityRepository.save(activity);
+        return save(activity);
     }
 }

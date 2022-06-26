@@ -10,7 +10,7 @@ import org.kie.api.definition.type.Timestamp;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Document
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class Postponement {
     @Id @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
-    private LocalDateTime dateTime;
+    private Date dateTime;
     private PostponementReason reason;
     @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId activityId;

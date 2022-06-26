@@ -26,7 +26,7 @@ public class Activity {
     @NotNull
     private LocalDateTime start;
     private LocalDateTime end;
-    private Integer estimatedTimeMinutes;
+    private Long estimatedTimeMinutes;
     private Integer priority;
     @NotNull
     private ActivityContinuityType continuityType;
@@ -35,4 +35,5 @@ public class Activity {
     private Boolean isArchived=false, isDone=false;
 
     private Set<DayOfWeek> forDays; // only if periodic
+
 }

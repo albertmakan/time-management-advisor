@@ -1,12 +1,7 @@
 package com.sbnz;
 
-import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
-import com.sbnz.timemanagementadvisor.model.ActivityInstance;
-import com.sbnz.timemanagementadvisor.model.DayTemplate;
-import com.sbnz.timemanagementadvisor.model.Routine;
-import com.sbnz.timemanagementadvisor.model.Activity;
-import com.sbnz.timemanagementadvisor.model.enums.ActivityContinuityType;
-import com.sbnz.timemanagementadvisor.model.enums.RoutineType;
+import com.sbnz.timemanagementadvisor.model.*
+import com.sbnz.timemanagementadvisor.model.enums.*
 
 import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
 
@@ -14,7 +9,6 @@ import java.time.LocalTime;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import org.bson.types.ObjectId;
 
 declare LastActivityEnd
   time: LocalTime
@@ -34,7 +28,7 @@ end
 
 declare HighPriorityActivities
   list: Activity[]
-  durations: int[]
+  durations: long[]
   n: int
   find: boolean
   note: java.lang.String
@@ -62,7 +56,7 @@ rule "Insert HighPriorityActivities and NextRoutineInfo"
         System.out.println("Insert HighPriorityActivities and NextRoutineInfo");
         HighPriorityActivities hpa = new HighPriorityActivities();
         hpa.setList(new Activity[5]);
-        hpa.setDurations(new int[5]);
+        hpa.setDurations(new long[5]);
         hpa.setN(0);
         hpa.setFind(true);
         insert(hpa);
@@ -178,7 +172,7 @@ rule "Find activities with highest priority"
     then
         $al[$n] = $act;
         long daysLeft = Duration.between(LocalDateTime.of($date,$time), $end).toDays();
-        $dl[$n] = (daysLeft < 1) ? $est : (int)($est / daysLeft);
+        $dl[$n] = (daysLeft < 1) ? $est : ($est / daysLeft);
         System.out.println("find activities with highest priority: "+$act.getTitle()+"; d:"+ $dl[$n]);
         $hpa.setN($n+1);
 end

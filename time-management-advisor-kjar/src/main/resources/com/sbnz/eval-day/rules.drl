@@ -1,18 +1,59 @@
-package com.sbnz;
+import com.sbnz.timemanagementadvisor.model.*
+import com.sbnz.timemanagementadvisor.model.enums.*
 
-import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
-import com.sbnz.timemanagementadvisor.model.Activity;
-import com.sbnz.timemanagementadvisor.model.DayTemplate;
+import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
 
 import java.time.LocalTime;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 
-global java.util.Set activitiesToUpdate;
+global java.util.Map activitiesToUpdate;
 
 
-rule "A"
+rule "Update continual"
     when
-        $day: DailyTimeSheet()
+        $day: DailyTimeSheet($activities: activities)
+        $ai: ActivityInstance($aid: activityId, $ad: Duration.between(start, end).toMinutes()) from $activities
+        $act: Activity(id == $aid, continuityType == ActivityContinuityType.CONTINUAL, $est: estimatedTimeMinutes)
     then
-        activitiesToUpdate.add(new Activity(){{setTitle("SSSSSSSSSSSSSSS");}});
+        System.out.println("Update continual");
+        $act.setEstimatedTimeMinutes($est - $ad);
+        if ($act.getEstimatedTimeMinutes() < 1) $act.setIsDone(true);
+        activitiesToUpdate.put($aid, $act);
+end
+
+
+rule "Update one-time"
+    when
+        $day: DailyTimeSheet($activities: activities, $date: day)
+        $ai: ActivityInstance($aid: activityId, $end: end) from $activities
+        $act: Activity(id == $aid, continuityType == ActivityContinuityType.ONE_TIME, end.equals(LocalDateTime.of($date, $end)))
+    then
+        System.out.println("Update one-time");
+        $act.setIsDone(true);
+        activitiesToUpdate.put($aid, $act);
+end
+
+
+rule "Update periodic"
+    when
+        $day: DailyTimeSheet($activities: activities, $date: day)
+        $ai: ActivityInstance($aid: activityId) from $activities
+        $act: Activity(id == $aid, continuityType == ActivityContinuityType.PERIODIC, end.toLocalDate().equals($date))
+    then
+        System.out.println("Update periodic");
+        $act.setIsDone(true);
+        activitiesToUpdate.put($aid, $act);
+end
+
+
+rule "User birthday"
+    when
+        $day: DailyTimeSheet($date: day, $eval: evaluation)
+        $user: User(birthDate.equals($date))
+    then
+        System.out.println("User birthday");
+        $day.setEvaluation($eval+"\nHAPPY BIRTHDAY");
 end

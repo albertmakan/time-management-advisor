@@ -24,6 +24,7 @@
 import { ref } from "vue";
 import { useToast } from "vue-toastification";
 import { User } from "@/model/User";
+import { createUser } from "@/services/userService";
 export default { name: "ActivityForm" };
 </script>
 
@@ -33,7 +34,7 @@ const user = ref<User>({ name: "", email: "", birthDate: new Date() });
 const valid = ref(true);
 const submit = () => {
   toast(JSON.stringify(user.value));
-  // createActivity(dayTemplate.value).then(() => toast.success("Added"));
+  createUser(user.value).then(() => toast.success("Added"));
 };
 
 const rules = {

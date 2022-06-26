@@ -2,25 +2,24 @@ package com.sbnz.timemanagementadvisor.service;
 
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
-import com.sbnz.timemanagementadvisor.repository.ActivityRepository;
+import com.sbnz.timemanagementadvisor.model.User;
 import com.sbnz.timemanagementadvisor.repository.DailyTimeSheetRepository;
-import com.sbnz.timemanagementadvisor.repository.DayTemplateRepository;
 import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class DailyTimeSheetService {
-    private DailyTimeSheetRepository dailyTimeSheetRepository;
-    private DayTemplateRepository dayTemplateRepository;
-    private ActivityRepository activityRepository;
+    private final DailyTimeSheetRepository dailyTimeSheetRepository;
+    private final DayTemplateService dayTemplateService;
+    private final ActivityService activityService;
+    private final UserService userService;
     private final KieContainer kieContainer;
 
     public Optional<DailyTimeSheet> findByDay(LocalDate day) {
@@ -34,8 +33,8 @@ public class DailyTimeSheetService {
         DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
         day.getActivities().clear();
 
-        dayTemplateRepository.findAll().forEach(kieSession::insert);
-        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+        dayTemplateService.getAll().forEach(kieSession::insert);
+        activityService.getAllActive().forEach(kieSession::insert);
 
         kieSession.insert(day);
 
@@ -48,20 +47,24 @@ public class DailyTimeSheetService {
         LocalDate nd = LocalDate.now();
         DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
         if (day.getEvaluation() != null) return day;
+        User user = userService.getUser().orElse(null);
 
         KieSession kieSession = kieContainer.newKieSession("ksession-eval-day");
 
-        Set<Activity> activitiesToUpdate = new HashSet<>();
+        Map<ObjectId, Activity> activitiesToUpdate = new HashMap<>();
         kieSession.setGlobal("activitiesToUpdate", activitiesToUpdate);
 
-        activityRepository.findAllByIsArchivedFalseAndIsDoneFalse().forEach(kieSession::insert);
+        activityService.getAllActive().forEach(a->System.out.println("INSERT "+a.getTitle()+" "+a.getEstimatedTimeMinutes()));
+        activityService.getAllActive().forEach(kieSession::insert);
 
         kieSession.insert(day);
+        kieSession.insert(user);
 
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        activitiesToUpdate.forEach(a->System.out.println("UPDATE"+a.getTitle()));
+        activitiesToUpdate.forEach((i,a)->System.out.println("UPDATE "+a.getTitle()+" "+a.getEstimatedTimeMinutes()));
+//        activitiesToUpdate.forEach((id, a) -> activityService.save(a));
 
         return day;//dailyTimeSheetRepository.save(day);
     }

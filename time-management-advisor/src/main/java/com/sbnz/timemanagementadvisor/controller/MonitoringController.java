@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/monitoring")
+@RequestMapping(value = "/api/monitoring", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MonitoringController {
     private final MonitoringService monitoringService;
 
-    @GetMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/test")
     public ResponseEntity<Void> test() {
         monitoringService.insertEvent();
         return new ResponseEntity<>(HttpStatus.OK);

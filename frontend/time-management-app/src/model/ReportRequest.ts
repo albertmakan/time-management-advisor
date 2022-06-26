@@ -4,4 +4,5 @@ export interface ReportRequest {
   range: { start: Date; end: Date };
   activityIds: string[];
   activityTypes: ActivityType[];
+  byIds: boolean;
 }

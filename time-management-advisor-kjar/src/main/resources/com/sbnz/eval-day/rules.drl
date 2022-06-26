@@ -57,3 +57,29 @@ rule "User birthday"
         System.out.println("User birthday");
         $day.setEvaluation($eval+"\nHAPPY BIRTHDAY");
 end
+
+
+rule "Percent routine"
+    when
+        $day: DailyTimeSheet($activities: activities, $date: day, $eval: evaluation)
+        accumulate (ActivityInstance(activityId == null, $d: Duration.between(start, end).toMinutes()) from $activities, 
+            $duration: sum($d)
+        )
+    then
+        long p = 100*$duration / 1440;
+        System.out.println("Percent routine");
+        $day.setEvaluation($eval+"\n"+p+"% routines");
+end
+
+
+rule "Percent activity"
+    when
+        $day: DailyTimeSheet($activities: activities, $date: day, $eval: evaluation)
+        accumulate (ActivityInstance(activityId != null, $d: Duration.between(start, end).toMinutes()) from $activities, 
+            $duration: sum($d)
+        )
+    then
+        long p = 100*$duration / 1440;
+        System.out.println("Percent activity");
+        $day.setEvaluation($eval+"\n"+p+"% activities");
+end

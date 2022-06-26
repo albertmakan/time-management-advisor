@@ -26,7 +26,11 @@ public class DailyTimeSheetService {
         return dailyTimeSheetRepository.findByDay(day);
     }
 
-    public DailyTimeSheet planNextDay() {
+    public List<DailyTimeSheet> getAll() {
+        return dailyTimeSheetRepository.findAll();
+    }
+
+    public DailyTimeSheet planNextDay(LocalDate date) {
         KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
 
         LocalDate nd = LocalDate.now().plusDays(1);
@@ -43,7 +47,7 @@ public class DailyTimeSheetService {
         return dailyTimeSheetRepository.save(day);
     }
 
-    public DailyTimeSheet evalThisDay() {
+    public DailyTimeSheet evalThisDay(LocalDate date) {
         LocalDate nd = LocalDate.now();
         DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
         if (day.getEvaluation() != null) return day;
@@ -54,7 +58,6 @@ public class DailyTimeSheetService {
         Map<ObjectId, Activity> activitiesToUpdate = new HashMap<>();
         kieSession.setGlobal("activitiesToUpdate", activitiesToUpdate);
 
-        activityService.getAllActive().forEach(a->System.out.println("INSERT "+a.getTitle()+" "+a.getEstimatedTimeMinutes()));
         activityService.getAllActive().forEach(kieSession::insert);
 
         kieSession.insert(day);
@@ -63,9 +66,8 @@ public class DailyTimeSheetService {
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        activitiesToUpdate.forEach((i,a)->System.out.println("UPDATE "+a.getTitle()+" "+a.getEstimatedTimeMinutes()));
-//        activitiesToUpdate.forEach((id, a) -> activityService.save(a));
+        activitiesToUpdate.forEach((id, a) -> activityService.save(a));
 
-        return day;//dailyTimeSheetRepository.save(day);
+        return dailyTimeSheetRepository.save(day);
     }
 }

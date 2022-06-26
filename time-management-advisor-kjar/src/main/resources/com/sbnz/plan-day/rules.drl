@@ -237,6 +237,7 @@ rule "Add fix activity"
         ai.setDescription($act.getDescription());
         ai.setStart($start);
         ai.setEnd($act.getEnd().toLocalDate().equals($date) ? $act.getEnd().toLocalTime() : LocalTime.MAX);
+        ai.setActivityType($act.getActivityType());
         modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
         delete($next);
@@ -262,6 +263,7 @@ rule "Add continual activity"
         ai.setTitle(a.getTitle());
         ai.setDescription(a.getDescription());
         ai.setStart($time);
+        ai.setActivityType(a.getActivityType());
         // TODO checklist?
         if (Duration.between($time, end).toMinutes() > $dl[0]) end = $time.plusMinutes($dl[0]);
         ai.setEnd(end);
@@ -296,6 +298,7 @@ rule "Add continual activity - no fix"
         ai.setTitle(a.getTitle());
         ai.setDescription(a.getDescription());
         ai.setStart($time);
+        ai.setActivityType(a.getActivityType());
         // TODO checklist?
         if (Duration.between($time, end).toMinutes() > $dl[0]) end = $time.plusMinutes($dl[0]);
         ai.setEnd(end);
@@ -329,6 +332,7 @@ rule "Add dummy activity"
         ai.setDescription("Free time");
         ai.setStart($time);
         ai.setEnd(end);
+        ai.setActivityType(ActivityType.OTHER);
         modify($day) { getActivities().add(ai) }
         modify($lae) { setTime(ai.getEnd()) }
         modify($hpa) { setFind(false) }

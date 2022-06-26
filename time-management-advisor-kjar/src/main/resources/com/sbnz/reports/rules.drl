@@ -1,2 +1,36 @@
 package com.sbnz;
 
+import com.sbnz.timemanagementadvisor.dto.ReportRequest;
+import com.sbnz.timemanagementadvisor.model.*
+import com.sbnz.timemanagementadvisor.model.enums.*
+
+import com.sbnz.timemanagementadvisor.utils.DateTimeUtils;
+
+import java.time.LocalTime;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+
+
+query "Report by types" (ReportRequest req)
+    DailyTimeSheet(!day.isBefore(req.getStart()), !day.isAfter(req.getEnd()), $activities: activities, $day: day)
+    accumulate(
+        ActivityInstance(req.getActivityTypes() contains activityType, $ad: Duration.between(start, end).toMinutes(), $at: title)
+            from $activities,
+        $titles: collectSet($at),
+        $duration: sum($ad)
+    )
+    eval($titles.size() > 0)
+end
+
+
+query "Report by ids" (ReportRequest req)
+    DailyTimeSheet(!day.isBefore(req.getStart()), !day.isAfter(req.getEnd()), $activities: activities, $day: day)
+    accumulate(
+        ActivityInstance(activityId memberOf req.getActivityIds(), $ad: Duration.between(start, end).toMinutes(), $at: title)
+            from $activities,
+        $titles: collectSet($at),
+        $duration: sum($ad)
+    )
+    eval($titles.size() > 0)
+end

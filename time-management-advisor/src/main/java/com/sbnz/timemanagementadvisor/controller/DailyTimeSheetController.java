@@ -7,10 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -20,14 +17,14 @@ import java.time.LocalDate;
 public class DailyTimeSheetController {
     private final DailyTimeSheetService dailyTimeSheetService;
 
-    @GetMapping("/plan")
-    public ResponseEntity<DailyTimeSheet> plan() {
-        return new ResponseEntity<>(dailyTimeSheetService.planNextDay(), HttpStatus.OK);
+    @PostMapping("/plan/{date}")
+    public ResponseEntity<DailyTimeSheet> plan(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+        return new ResponseEntity<>(dailyTimeSheetService.planNextDay(date), HttpStatus.OK);
     }
 
-    @GetMapping("/eval")
-    public ResponseEntity<DailyTimeSheet> eval() {
-        return new ResponseEntity<>(dailyTimeSheetService.evalThisDay(), HttpStatus.OK);
+    @PostMapping("/eval/{date}")
+    public ResponseEntity<DailyTimeSheet> eval(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+        return new ResponseEntity<>(dailyTimeSheetService.evalThisDay(date), HttpStatus.OK);
     }
 
     @GetMapping("/{date}")

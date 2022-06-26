@@ -1,5 +1,6 @@
 package com.sbnz.timemanagementadvisor.controller;
 
+import com.sbnz.timemanagementadvisor.dto.ReportDTO;
 import com.sbnz.timemanagementadvisor.dto.ReportRequest;
 import com.sbnz.timemanagementadvisor.service.ReportService;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping
-    public ResponseEntity<List<?>> getReport(@RequestBody ReportRequest reportRequest) {
+    public ResponseEntity<List<ReportDTO>> getReport(@RequestBody ReportRequest reportRequest) {
         return new ResponseEntity<>(reportService.getReport(reportRequest), HttpStatus.OK);
     }
 }

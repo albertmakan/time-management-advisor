@@ -11,8 +11,32 @@
         :subtitle="`${timeF(activity.start)}-${timeF(activity.end)}`"
         :key="i"
       >
+        <v-btn
+          size="x-small"
+          variant="text"
+          :icon="activity.show ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+          @click="activity.show = !activity.show"
+        ></v-btn>
+
+        <v-expand-transition>
+          <div v-show="activity.show">
+            <v-divider></v-divider>
+            <v-card-text>
+              {{ activity.description }}
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="secondary" size="small">save</v-btn>
+              <v-btn v-if="activity.activityId" color="error" size="small">
+                postpone
+              </v-btn>
+            </v-card-actions>
+          </div>
+        </v-expand-transition>
       </v-card>
     </v-card-text>
+    <v-card-actions>
+      <v-btn color="secondary" variant="flat">EVAL</v-btn>
+    </v-card-actions>
   </v-card>
 </template>
 

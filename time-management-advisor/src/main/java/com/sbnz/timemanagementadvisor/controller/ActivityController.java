@@ -3,6 +3,7 @@ package com.sbnz.timemanagementadvisor.controller;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.service.ActivityService;
 import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,34 @@ public class ActivityController {
 
     @PostMapping("/new")
     public ResponseEntity<Activity> create(@RequestBody @Valid Activity activity) {
-        return new ResponseEntity<>(activityService.createNew(activity), HttpStatus.OK);
+        return new ResponseEntity<>(activityService.createOrUpdate(activity), HttpStatus.OK);
+    }
+
+    @PutMapping("/edit")
+    public ResponseEntity<Activity> edit(@RequestBody @Valid Activity activity) {
+        return new ResponseEntity<>(activityService.createOrUpdate(activity), HttpStatus.OK);
+    }
+
+    @PutMapping("/archive/{id}")
+    public ResponseEntity<Activity> archive(@PathVariable ObjectId id) {
+        activityService.archive(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/mark-done/{id}")
+    public ResponseEntity<Activity> markDone(@PathVariable ObjectId id) {
+        activityService.markDone(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<Activity>> getAll() {
         return new ResponseEntity<>(activityService.getAll(), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Activity> getAll(@PathVariable ObjectId id) {
+        return activityService.getById(id).map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

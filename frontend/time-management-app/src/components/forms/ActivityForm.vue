@@ -1,5 +1,5 @@
 <template>
-  <v-card title="New activity" maxWidth="700">
+  <v-card :title="activity.id ? 'Edit activity' : 'New activity'" width="700">
     <v-card-content>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-text-field
@@ -142,23 +142,29 @@
 
 <script lang="ts">
 import { Activity } from "@/model/Activity";
-import { ref } from "vue";
+import { ref, defineProps, toRefs } from "vue";
 import { ActivityType } from "@/model/enums/ActivityType";
 import { ActivityContinuityType } from "@/model/enums/ActivityContinuityType";
 import { DayOfWeek } from "@/model/enums/DayOfWeek";
-import { createActivity } from "@/services/activityService";
+import { createActivity, editActivity } from "@/services/activityService";
 import { useToast } from "vue-toastification";
 import { CheckListItem } from "@/model/CheckListItem";
 export default { name: "ActivityForm" };
 </script>
 
 <script setup lang="ts">
+const props = defineProps<{ activityProp: Activity | undefined }>();
 const toast = useToast();
 const activity = ref<Activity>({ start: new Date() } as Activity);
+const { activityProp } = toRefs(props);
+if (activityProp.value) activity.value = activityProp.value;
+
 const valid = ref(true);
 const submit = () => {
   console.log(JSON.stringify(activity.value));
-  createActivity(activity.value).then(() => toast.success("Added"));
+  if (activity.value.id)
+    editActivity(activity.value).then(() => toast.success("Updated"));
+  else createActivity(activity.value).then(() => toast.success("Added"));
 };
 
 const showinput = ref(false);

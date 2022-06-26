@@ -9,4 +9,5 @@ export interface ActivityInstance {
   start: string; //Date;
   end: string; //Date;
   activityType: ActivityType;
+  show: boolean;
 }

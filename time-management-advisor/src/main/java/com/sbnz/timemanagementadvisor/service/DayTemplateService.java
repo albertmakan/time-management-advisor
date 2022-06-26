@@ -34,6 +34,7 @@ public class DayTemplateService {
         kieSession.dispose();
 
         if (message.getLevel() == MessageLevel.ERROR) throw new BadRequestException(message.getText());
+        if (message.getLevel() == MessageLevel.WARN) throw new BadRequestException(message.getText());
 
         return dayTemplateRepository.save(dayTemplate);
     }

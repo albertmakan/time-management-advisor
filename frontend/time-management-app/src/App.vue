@@ -2,7 +2,9 @@
   <v-app>
     <NavigationDrawer />
     <v-main>
-      <router-view />
+      <div class="main">
+        <router-view />
+      </div>
     </v-main>
   </v-app>
 </template>
@@ -16,3 +18,9 @@ export default defineComponent({
   components: { NavigationDrawer },
 });
 </script>
+
+<style scoped>
+div.main {
+  padding: 50px;
+}
+</style>

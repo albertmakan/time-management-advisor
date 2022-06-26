@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h1>New activity</h1>
-    <ActivityForm />
+    <v-row justify="center"><ActivityForm :activity-prop="undefined" /></v-row>
   </div>
 </template>
 

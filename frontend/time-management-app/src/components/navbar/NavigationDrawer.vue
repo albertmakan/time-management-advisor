@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer theme="dark" permanent>
+  <v-navigation-drawer theme="dark" width="250" permanent>
     <template v-slot:prepend>
       <v-list-item><h2>time management app</h2></v-list-item>
     </template>

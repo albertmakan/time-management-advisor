@@ -25,7 +25,7 @@ import { ref } from "vue";
 import { useToast } from "vue-toastification";
 import { User } from "@/model/User";
 import { createUser } from "@/services/userService";
-export default { name: "ActivityForm" };
+export default { name: "UserForm" };
 </script>
 
 <script setup lang="ts">

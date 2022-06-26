@@ -19,7 +19,7 @@ import java.util.Set;
 @Data
 @Document
 public class Activity {
-    @Id @JsonSerialize(using = ToStringSerializer.class) @Null
+    @Id @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
     private String title, description;
     private List<CheckListItem> checklist;

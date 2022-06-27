@@ -1,5 +1,6 @@
 package com.sbnz.timemanagementadvisor.service;
 
+import com.sbnz.timemanagementadvisor.model.AdviceMessage;
 import com.sbnz.timemanagementadvisor.model.StopwatchEvent;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,10 @@ public class MonitoringService {
     @Autowired @Qualifier("eventsSession")
     private KieSession eventsSession;
 
-    public void insertEvent() {
+    public String insertEvent() {
         eventsSession.insert(new StopwatchEvent());
-        eventsSession.fireUntilHalt();
+        int n = eventsSession.fireAllRules();
+        if (n == 0) return "This event was too close to the previous";
+        return ((AdviceMessage) eventsSession.getGlobal("message")).getText();
     }
 }

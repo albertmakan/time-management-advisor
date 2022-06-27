@@ -33,9 +33,26 @@
           </div>
         </v-expand-transition>
       </v-card>
+      Evaluation:
+      {{ timeSheet.evaluation }}
     </v-card-text>
     <v-card-actions>
-      <v-btn color="secondary" variant="flat">EVAL</v-btn>
+      <v-btn
+        v-if="timeSheet.id && !timeSheet.evaluation"
+        color="secondary"
+        variant="flat"
+        @click="() => handleEval(timeSheet.day)"
+      >
+        Eval
+      </v-btn>
+      <v-btn
+        v-if="!timeSheet.evaluation && notInPast(timeSheet.day)"
+        color="secondary"
+        variant="flat"
+        @click="() => handlePlan(timeSheet.day)"
+      >
+        Plan
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -45,12 +62,25 @@ export default { name: "DailyTimeSheetCard" };
 import { DailyTimeSheet } from "@/model/DailyTimeSheet";
 import { defineProps } from "vue";
 import moment from "moment";
+import { evalDay, planDay } from "@/services/dailyTimeSheetService";
+import { useToast } from "vue-toastification";
 </script>
 
 <script setup lang="ts">
+const toast = useToast();
 defineProps<{ timeSheet: DailyTimeSheet }>();
 const timeF = (v: string) => {
   if (!v) return "";
   return v.substring(0, 5);
 };
+
+const handleEval = (day: Date) => {
+  evalDay(day).then(() => toast.success("Evaluated"));
+};
+
+const handlePlan = (day: Date) => {
+  planDay(day).then(() => toast.success("Planned"));
+};
+
+const notInPast = (day: Date) => !moment(day).isBefore(moment().startOf("day"));
 </script>

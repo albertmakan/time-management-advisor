@@ -29,6 +29,14 @@ public class ActivityService {
         return activityRepository.findAllByIsArchivedFalseAndIsDoneFalse();
     }
 
+    public List<Activity> getAllDone() {
+        return activityRepository.findAllByIsDoneTrue();
+    }
+
+    public List<Activity> getAllArchived() {
+        return activityRepository.findAllByIsArchivedTrue();
+    }
+
     public Activity save(Activity activity) {
         return activityRepository.save(activity);
     }

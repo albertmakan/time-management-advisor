@@ -40,9 +40,19 @@ public class ActivityController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Activity>> getAll() {
-        return new ResponseEntity<>(activityService.getAll(), HttpStatus.OK);
+    @GetMapping("/all/active")
+    public ResponseEntity<List<Activity>> getAllActive() {
+        return new ResponseEntity<>(activityService.getAllActive(), HttpStatus.OK);
+    }
+
+    @GetMapping("/all/archived")
+    public ResponseEntity<List<Activity>> getAllArchived() {
+        return new ResponseEntity<>(activityService.getAllArchived(), HttpStatus.OK);
+    }
+
+    @GetMapping("/all/done")
+    public ResponseEntity<List<Activity>> getAllDone() {
+        return new ResponseEntity<>(activityService.getAllDone(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

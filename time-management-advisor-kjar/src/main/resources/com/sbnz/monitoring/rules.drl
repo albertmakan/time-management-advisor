@@ -1,10 +1,14 @@
 package com.sbnz;
 
 import com.sbnz.timemanagementadvisor.model.StopwatchEvent;
+import com.sbnz.timemanagementadvisor.model.AdviceMessage;
 
 import java.util.Date;
 import java.lang.Long;
 import java.time.LocalTime;
+
+
+global AdviceMessage message;
 
 
 declare WorkEvent
@@ -36,7 +40,7 @@ end
 //           StopwatchEvent() over window:time(10s), count(1)
 //         )
 //     then
-//         System.out.println($n + "event in last 10s");
+//         message.setText($n + "event in last 10s");
 // end
 
 
@@ -48,7 +52,7 @@ rule "Insert first work event"
     then
         long dt = $t2.getTime()-$t1.getTime();
         insert(new WorkEvent($t1, dt));
-        System.out.println("It was a "+ dt/60000 + "min WORK");
+        message.setText("It was a "+ dt/60000 + "min WORK");
         delete($e1);
 end
 
@@ -61,7 +65,7 @@ rule "Insert break event"
     then
         long dt = $t2.getTime()-$t1.getTime();
         insert(new BreakEvent($t1, dt));
-        System.out.println("It was a "+ dt/60000 + "min BREAK");
+        message.setText("It was a "+ dt/60000 + "min BREAK");
         delete($e1);
 end
 
@@ -74,7 +78,7 @@ rule "Insert work event"
     then
         long dt = $t2.getTime()-$t1.getTime();
         insert(new WorkEvent($t1, dt));
-        System.out.println("It was a "+ dt/60000 + "min WORK");
+        message.setText("It was a "+ dt/60000 + "min WORK");
         delete($e1);
 end
 
@@ -93,7 +97,7 @@ rule "Eval first activity block"
         )
     then
         insert(new ActivityBlockEvent($dw/60000, $db/60000));
-        System.out.println("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
+        message.setText("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
 end
 
 
@@ -111,5 +115,5 @@ rule "Eval activity block"
         )
     then
         insert(new ActivityBlockEvent($dw/60000, $db/60000));
-        System.out.println("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
+        message.setText("ActivityBlock "+ $dw/60000 + "min WORK, "+ $db/60000 +"min BREAK");
 end

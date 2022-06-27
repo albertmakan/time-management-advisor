@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface ActivityRepository extends MongoRepository<Activity, ObjectId> {
     List<Activity> findAllByIsArchivedFalseAndIsDoneFalse();
+    List<Activity> findAllByIsArchivedTrue();
+    List<Activity> findAllByIsDoneTrue();
 }

@@ -115,7 +115,6 @@ const dayTemplate = ref<DayTemplate>({
 });
 const valid = ref(true);
 const submit = () => {
-  toast(JSON.stringify(dayTemplate.value));
   createDayTemplate(dayTemplate.value).then(() => toast.success("Added"));
 };
 

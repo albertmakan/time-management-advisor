@@ -6,6 +6,7 @@ import EditActivityView from "../views/EditActivityView.vue";
 import CalendarView from "../views/CalendarView.vue";
 import ReportsView from "../views/ReportsView.vue";
 import ProfileView from "../views/ProfileView.vue";
+import MonitoringView from "../views/MonitoringView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -42,6 +43,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/edit-activity/:id",
     name: "edit-activity",
     component: EditActivityView,
+  },
+  {
+    path: "/monitoring",
+    name: "monitoring",
+    component: MonitoringView,
   },
 ];
 

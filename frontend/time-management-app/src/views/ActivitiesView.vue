@@ -1,6 +1,11 @@
 <template>
   <div>
-    <h1>Activities</h1>
+    <h1>{{ a }} Activities</h1>
+    <v-row>
+      <v-btn @click="() => fetchActivities('active')">Active</v-btn>
+      <v-btn @click="() => fetchActivities('archived')">Archived</v-btn>
+      <v-btn @click="() => fetchActivities('done')">Done</v-btn>
+    </v-row>
     <v-row>
       <ActivityCard v-for="a in activities" :activity="a" :key="a.id" />
     </v-row>
@@ -17,7 +22,13 @@ export default { name: "ActivitiesView" };
 
 <script setup lang="ts">
 const activities = ref<Activity[]>([]);
+const a = ref("active");
 onMounted(() => {
-  getAll().then((a) => (activities.value = a));
+  fetchActivities("active");
 });
+
+const fetchActivities = (s: "active" | "done" | "archived") => {
+  getAll(s).then((a) => (activities.value = a));
+  a.value = s;
+};
 </script>

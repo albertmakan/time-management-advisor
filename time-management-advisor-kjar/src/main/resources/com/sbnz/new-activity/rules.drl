@@ -43,13 +43,13 @@ end
 rule "Check enough time"
     agenda-group "conflict"
     when
-        $new: Activity(id == null, continuityType == ActivityContinuityType.CONTINUAL, $start: start, end!=null, $end: end)
+        $new: Activity(id == null, continuityType == ActivityContinuityType.CONTINUAL, $start: start, end!=null, $end: end, $est: estimatedTimeMinutes)
         $msg: AdviceMessage(text == null)
-
+        // TODO
+        eval(Duration.between(start, end).toMinutes() < $est)
     then
-
-
-        //$msg.setLevel(MessageLevel.WARN);
+        $msg.setText("Not enough time for activity");
+        $msg.setLevel(MessageLevel.WARN);
 end
 
 

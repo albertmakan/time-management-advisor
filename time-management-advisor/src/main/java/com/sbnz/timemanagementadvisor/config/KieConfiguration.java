@@ -1,5 +1,6 @@
 package com.sbnz.timemanagementadvisor.config;
 
+import com.sbnz.timemanagementadvisor.model.AdviceMessage;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieContainer;
@@ -23,7 +24,9 @@ public class KieConfiguration {
 
     @Bean(name = "eventsSession")
     public KieSession eventsSession() {
-        return kieContainer().newKieSession("ksession-monitoring");
+        KieSession ksession = kieContainer().newKieSession("ksession-monitoring");
+        ksession.setGlobal("message", new AdviceMessage());
+        return ksession;
     }
 
 }

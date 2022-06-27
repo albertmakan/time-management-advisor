@@ -1,5 +1,6 @@
 package com.sbnz.timemanagementadvisor.service;
 
+import com.sbnz.timemanagementadvisor.exceptions.BadRequestException;
 import com.sbnz.timemanagementadvisor.model.Activity;
 import com.sbnz.timemanagementadvisor.model.DailyTimeSheet;
 import com.sbnz.timemanagementadvisor.model.User;
@@ -31,11 +32,11 @@ public class DailyTimeSheetService {
     }
 
     public DailyTimeSheet planNextDay(LocalDate date) {
-        KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
-
-        LocalDate nd = LocalDate.now().plusDays(1);
-        DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
+        DailyTimeSheet day = findByDay(date).orElse(new DailyTimeSheet(date));
+        if (day.getEvaluation() != null || day.getDay().isBefore(LocalDate.now()))
+            throw new BadRequestException("This day is already over.");
         day.getActivities().clear();
+        KieSession kieSession = kieContainer.newKieSession("ksession-plan-day");
 
         dayTemplateService.getAll().forEach(kieSession::insert);
         activityService.getAllActive().forEach(kieSession::insert);
@@ -48,8 +49,9 @@ public class DailyTimeSheetService {
     }
 
     public DailyTimeSheet evalThisDay(LocalDate date) {
-        LocalDate nd = LocalDate.now();
-        DailyTimeSheet day = findByDay(nd).orElse(new DailyTimeSheet(nd));
+        DailyTimeSheet day = findByDay(date)
+                .orElseThrow(() -> new BadRequestException("This day is not planned."));
+
         if (day.getEvaluation() != null) return day;
         User user = userService.getUser().orElse(null);
 

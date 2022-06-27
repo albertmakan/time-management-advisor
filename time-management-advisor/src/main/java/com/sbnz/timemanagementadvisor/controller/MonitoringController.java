@@ -16,8 +16,7 @@ public class MonitoringController {
     private final MonitoringService monitoringService;
 
     @GetMapping("/test")
-    public ResponseEntity<Void> test() {
-        monitoringService.insertEvent();
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<String> test() {
+        return new ResponseEntity<>(monitoringService.insertEvent(), HttpStatus.OK);
     }
 }

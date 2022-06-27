@@ -37,6 +37,18 @@ rule "Routine rule - overlapping"
 end
 
 
+rule "Routine rule - ends next day"
+    salience 10
+    when
+        DayTemplate(id == null, $routines:routines)
+        Routine(Duration.between(latestStart, LocalTime.MAX).toMinutes() < durationMinutes, $n1:name) from $routines
+        $msg: AdviceMessage($t: text) eval($t == null)
+    then
+        $msg.setText($n1+" is too long, ends the next day.");
+        $msg.setLevel(MessageLevel.ERROR);
+end
+
+
 rule "Routine rule - sleep time"
     salience 1
     when

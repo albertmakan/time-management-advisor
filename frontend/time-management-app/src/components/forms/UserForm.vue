@@ -33,7 +33,6 @@ const toast = useToast();
 const user = ref<User>({ name: "", email: "", birthDate: new Date() });
 const valid = ref(true);
 const submit = () => {
-  toast(JSON.stringify(user.value));
   createUser(user.value).then(() => toast.success("Added"));
 };
 
